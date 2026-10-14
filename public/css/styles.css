@@ -89,6 +89,10 @@ h1, h2, h3 { font-family: var(--fuente-titulo); line-height: 1.15; }
 .btn--whatsapp { background: var(--whatsapp); color: #fff; }
 .btn--whatsapp:hover { background: var(--whatsapp-oscuro); }
 
+/* Botón del Buhito Sabio (chat con IA) */
+.btn--buho { background: linear-gradient(160deg, #7c3aed, #4c1d95); color: #fff; }
+.btn--buho:hover { background: linear-gradient(160deg, #6d28d9, #3b0f7d); }
+
 .btn--sm { padding: 0.5rem 1rem; font-size: 0.85rem; }
 .btn--lg { padding: 0.9rem 1.8rem; font-size: 1rem; }
 .btn--bloque { display: flex; width: 100%; margin-top: 0.7rem; }
@@ -322,7 +326,53 @@ h1, h2, h3 { font-family: var(--fuente-titulo); line-height: 1.15; }
 
 .tarjeta__acciones { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
 .tarjeta__acciones .btn { padding: 0.6rem 0.5rem; font-size: 0.83rem; }
-.tarjeta__acciones .btn--whatsapp { grid-column: 1 / -1; }
+.tarjeta__acciones .btn--whatsapp,
+.tarjeta__acciones .btn--buho { grid-column: 1 / -1; }
+
+/* ---------- Botón flotante del Buhito Sabio ---------- */
+.btn-buho-fab {
+  position: fixed;
+  right: 22px;
+  bottom: 22px;
+  z-index: 40;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  border: 3px solid var(--dorado);
+  background: linear-gradient(160deg, #7c3aed, #4c1d95);
+  box-shadow: 0 10px 26px rgba(76, 29, 149, 0.45);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  text-decoration: none;
+  transition: transform 0.2s;
+  animation: fab-brillo 3.5s infinite;
+}
+.btn-buho-fab img { width: 50px; height: 50px; }
+.btn-buho-fab:hover { transform: scale(1.1) rotate(-4deg); }
+
+.btn-buho-fab::after {
+  content: "Consultame";
+  position: absolute;
+  right: 74px;
+  background: var(--tinta);
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  white-space: nowrap;
+  opacity: 0;
+  transform: translateX(6px);
+  transition: opacity 0.2s, transform 0.2s;
+  pointer-events: none;
+}
+.btn-buho-fab:hover::after { opacity: 1; transform: translateX(0); }
+
+@keyframes fab-brillo {
+  0%, 100% { box-shadow: 0 10px 26px rgba(76, 29, 149, 0.45); }
+  50% { box-shadow: 0 10px 32px rgba(124, 58, 237, 0.65); }
+}
 
 /* ---------- Pasos ---------- */
 .pasos {

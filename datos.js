@@ -52,15 +52,19 @@ const normalizarLibro = (l) => ({
 // ------------------------------------------------------------
 //  LIBROS
 // ------------------------------------------------------------
-async function listarLibros({ soloActivos = false } = {}) {
+async function listarLibros({ soloActivos = false, soloConStock = false } = {}) {
   if (supabase) {
     let q = supabase.from(TABLA_LIBROS).select('*');
     if (soloActivos) q = q.eq('activo', true);
+    if (soloConStock) q = q.gt('stock', 0);
     const { data, error } = await q.order('created_at', { ascending: false });
     if (error) throw error;
     return (data || []).map(normalizarLibro);
   }
-  const where = soloActivos ? 'where activo = true' : '';
+  const condiciones = [];
+  if (soloActivos) condiciones.push('activo = true');
+  if (soloConStock) condiciones.push('stock > 0');
+  const where = condiciones.length ? `where ${condiciones.join(' and ')}` : '';
   const { rows } = await pool.query(
     `select * from ${TABLA_LIBROS} ${where} order by created_at desc`
   );
@@ -138,6 +142,87 @@ async function actualizarImagen(id, url) {
 }
 
 // ------------------------------------------------------------
+//  STOCK (descuento atómico al confirmar un pedido)
+// ------------------------------------------------------------
+// Descuenta stock de un libro SOLO si alcanza. Devuelve:
+//   { ok: true, stock }              → descontado
+//   { ok: false, motivo }            → sin stock suficiente / no existe
+// Usa la función SQL `descontar_stock` si existe (atómica). Si no
+// está creada, hace la mejor versión posible con condición gte.
+let avisoRpcAusente = false;
+
+async function descontarStock(id, cantidad = 1) {
+  const qty = Math.max(1, Number(cantidad) || 1);
+
+  if (supabase) {
+    // 1) Opción atómica: función en la base (sql/crear_tablas.sql)
+    const { data, error } = await supabase.rpc('descontar_stock', {
+      p_id: id,
+      p_cantidad: qty,
+    });
+    if (!error) {
+      const r = Array.isArray(data) ? data[0] : data;
+      return r && r.ok
+        ? { ok: true, stock: Number(r.stock) }
+        : { ok: false, motivo: 'sin_stock' };
+    }
+
+    // 2) Sin la función: condición "stock >= cantidad" en el update
+    if (!avisoRpcAusente) {
+      console.warn(
+        '⚠️  No existe la función SQL descontar_stock. ' +
+          'Creala en Supabase > SQL Editor (está en sql/crear_tablas.sql) ' +
+          'para descontar stock 100% seguro.'
+      );
+      avisoRpcAusente = true;
+    }
+    const antes = await obtenerLibro(id);
+    if (!antes) return { ok: false, motivo: 'no_existe' };
+    const nuevoStock = antes.stock - qty;
+    const { data: fila, error: upError } = await supabase
+      .from(TABLA_LIBROS)
+      .update({ stock: nuevoStock, updated_at: new Date().toISOString() })
+      .eq('id', id)
+      .gte('stock', qty)
+      .select('stock')
+      .maybeSingle();
+    if (upError) throw upError;
+    return fila ? { ok: true, stock: Number(fila.stock) } : { ok: false, motivo: 'sin_stock' };
+  }
+
+  // Conexión directa a PostgreSQL: update atómico de verdad
+  const { rows } = await pool.query(
+    `update ${TABLA_LIBROS}
+        set stock = stock - $1, updated_at = now()
+      where id = $2 and stock >= $1
+      returning stock`,
+    [qty, id]
+  );
+  return rows[0]
+    ? { ok: true, stock: Number(rows[0].stock) }
+    : { ok: false, motivo: 'sin_stock' };
+}
+
+// Devuelve stock descontado (se usa si falla la creación del pedido)
+async function devolverStock(id, cantidad = 1) {
+  const qty = Math.max(1, Number(cantidad) || 1);
+  if (supabase) {
+    const antes = await obtenerLibro(id);
+    if (!antes) return false;
+    const { error } = await supabase
+      .from(TABLA_LIBROS)
+      .update({ stock: antes.stock + qty, updated_at: new Date().toISOString() })
+      .eq('id', id);
+    return !error;
+  }
+  await pool.query(
+    `update ${TABLA_LIBROS} set stock = stock + $1, updated_at = now() where id = $2`,
+    [qty, id]
+  );
+  return true;
+}
+
+// ------------------------------------------------------------
 //  PEDIDOS
 // ------------------------------------------------------------
 async function crearPedido(pedido) {
@@ -168,5 +253,7 @@ module.exports = {
   editarLibro,
   borrarLibro,
   actualizarImagen,
+  descontarStock,
+  devolverStock,
   crearPedido,
 };

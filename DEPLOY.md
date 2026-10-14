@@ -38,8 +38,35 @@ el `render.yaml`, así que no se suben a git). Copialas de tu archivo
 | `SUPABASE_SERVICE_ROLE_KEY` | la clave `sb_secret_...` |
 | `DATABASE_URL` | la conexión `postgresql://...pooler.supabase.com...` |
 | `ADMIN_PASSWORD` | la contraseña del panel admin |
+| `GEMINI_API_KEY` | clave gratis de Google Gemini (ver Paso 3b) |
 
 > ⚠️ Estos valores son privados: nunca los compartas ni los subas a git.
+
+---
+
+## Paso 3b — Activar el chat del Buhito Sabio 🦉 (gratis)
+
+El chat con IA usa **Google Gemini**, que tiene un nivel gratuito muy
+generoso (15 pedidos por minuto y 1 millón de tokens por día). Pasos:
+
+1. Entrá a <https://aistudio.google.com/apikey> (con cualquier cuenta
+   de Google).
+2. **Create API key** → copiá la clave (`AIza...`).
+3. Pegala en Render como variable `GEMINI_API_KEY` y (opcionalmente)
+   `GEMINI_MODEL=gemini-2.5-flash`.
+4. En tu PC: pegala también en tu `.env` local (`GEMINI_API_KEY=...`)
+   y reiniciá con `npm start`.
+
+> 💡 Sin la clave, el chat igual funciona en modo básico (responde
+> precio y stock desde el catálogo), pero sin la magia completa del búho.
+
+### Importante: función de stock seguro (una sola vez)
+
+En <https://supabase.com> → tu proyecto → **SQL Editor**, pegá y
+ejecutá el contenido de **`sql/crear_tablas.sql`** (o solo la función
+`descontar_stock`, que está al final del archivo). Así el descuento de
+stock al confirmar un pedido es 100% a prueba de carreras. Sin esa
+función el sistema funciona igual, pero con una protección menor.
 
 ---
 
@@ -77,6 +104,9 @@ Entrá a la URL pública y fijate:
 3. Los botones verdes de **WhatsApp** abren la conversación con el
    mensaje armado.
 4. En el panel admin ingresás con tu `ADMIN_PASSWORD` y ves los 54 libros.
+5. El **botón flotante del búho** 🦉 (esquina inferior derecha) y el
+   botón "Consultar al búho" de cada libro abren el chat y el Buhito
+   responde precios, stock y recomendaciones.
 
 ---
 

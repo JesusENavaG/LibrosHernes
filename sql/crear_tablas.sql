@@ -78,6 +78,40 @@ create policy "imagenes libros publicas"
   using (bucket_id = 'libros');
 
 -- ------------------------------------------------------------
+-- FUNCIÓN: DESCUENTO ATÓMICO DE STOCK
+-- (la usa el backend al confirmar un pedido; si no existe,
+--  el servidor funciona igual pero con una protección menor)
+-- ------------------------------------------------------------
+create or replace function public.descontar_stock(p_id uuid, p_cantidad integer)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_stock integer;
+  v_titulo text;
+begin
+  update public.libros
+     set stock = stock - p_cantidad,
+         updated_at = now()
+   where id = p_id
+     and activo = true
+     and stock >= p_cantidad
+  returning stock, titulo into v_stock, v_titulo;
+
+  if v_stock is null then
+    return jsonb_build_object('ok', false, 'motivo', 'sin_stock');
+  end if;
+
+  return jsonb_build_object('ok', true, 'stock', v_stock, 'titulo', v_titulo);
+end;
+$$;
+
+comment on function public.descontar_stock is
+  'Descuenta stock de un libro solo si alcanza, en una sola operación segura';
+
+-- ------------------------------------------------------------
 -- DATOS DE EJEMPLO (borrar cuando cargues libros reales)
 -- ------------------------------------------------------------
 insert into public.libros (titulo, autor, descripcion, precio, imagen_url, stock) values

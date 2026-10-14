@@ -240,6 +240,9 @@ function renderizarLibros() {
             <button class="btn" style="background:var(--crema-2);color:var(--tinta)" data-accion="detalle" data-id="${l.id}">
               Ver detalle
             </button>
+            <button class="btn btn--buho" data-accion="chat" data-id="${l.id}">
+              🦉 Consultar al búho
+            </button>
             <button class="btn btn--whatsapp" data-accion="whatsapp" data-id="${l.id}">
               🟢 Pedir por WhatsApp
             </button>
@@ -529,7 +532,16 @@ function manejarClicksCatalogo(evento) {
     case 'whatsapp':
       abrirWhatsApp(mensajeLibro(libro));
       break;
+    case 'chat':
+      abrirChatBuho(libro);
+      break;
   }
+}
+
+// Abre el chat del Buhito Sabio en una pestaña nueva,
+// contextualizado con el libro que el cliente está mirando
+function abrirChatBuho(libro) {
+  window.open(`chat.html?libro=${encodeURIComponent(libro.id)}`, '_blank', 'noopener');
 }
 
 function init() {
@@ -579,6 +591,9 @@ function init() {
   });
   $('#btnDetalleWhatsapp').addEventListener('click', () => {
     if (estado.libroAbierto) abrirWhatsApp(mensajeLibro(estado.libroAbierto));
+  });
+  $('#btnDetalleBuho').addEventListener('click', () => {
+    if (estado.libroAbierto) abrirChatBuho(estado.libroAbierto);
   });
 
   // Formulario de pedido

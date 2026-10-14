@@ -10,6 +10,7 @@ const fs = require('fs');
 const crypto = require('crypto');
 const multer = require('multer');
 const datos = require('./datos');
+const ia = require('./ia');
 
 // ------------------------------------------------------------
 // Configuración
@@ -149,6 +150,7 @@ app.get('/api/config', (req, res) => {
     empresa: 'LibrosHernes',
     whatsapp: WHATSAPP_NUMBER,
     supabase_conectado: estaConectado(),
+    ia_activa: ia.configurado(),
   });
 });
 
@@ -156,13 +158,16 @@ app.get('/api/health', async (req, res) => {
   res.json({ ok: true, supabase: estaConectado() ? datos.fuente() : 'demo' });
 });
 
-// Listar libros (catálogo)
+// Listar libros (catálogo público: solo activos y con stock)
 app.get('/api/libros', async (req, res) => {
   if (!estaConectado()) {
-    return res.json({ fuente: 'demo', libros: librosDemo.filter((l) => l.activo) });
+    return res.json({
+      fuente: 'demo',
+      libros: librosDemo.filter((l) => l.activo && l.stock > 0),
+    });
   }
   try {
-    const libros = await datos.listarLibros({ soloActivos: true });
+    const libros = await datos.listarLibros({ soloActivos: true, soloConStock: true });
     res.json({ fuente: datos.fuente(), libros });
   } catch (e) {
     console.error('Error leyendo libros:', e.message);
@@ -189,6 +194,8 @@ app.get('/api/libros/:id', async (req, res) => {
 });
 
 // Crear pedido (formulario de requerimiento)
+// IMPORTANTE: al confirmarse el pedido se descuenta el stock; si un libro
+// se queda sin ejemplares, deja de aparecer en el catálogo público.
 app.post('/api/pedidos', async (req, res) => {
   const { nombre, telefono, email, direccion, comentarios, detalles, total } = req.body || {};
 
@@ -214,7 +221,21 @@ app.post('/api/pedidos', async (req, res) => {
   };
 
   if (!estaConectado()) {
-    // Modo demo: se guarda en memoria hasta conectar Supabase
+    // Modo demo: descuenta stock en memoria y guarda el pedido
+    const descontados = [];
+    for (const d of detalles) {
+      const libro = librosDemo.find((l) => l.id === d.id);
+      const cantidad = Math.max(1, Number(d.cantidad) || 1);
+      if (!libro || libro.stock < cantidad) {
+        for (const x of descontados) x.libro.stock += x.cantidad; // revertir
+        const nombreLibro = (libro && libro.titulo) || d.titulo || 'un libro';
+        return res.status(409).json({
+          error: `No quedan ejemplares suficientes de "${nombreLibro}". Quitá ese libro del carrito e intentá de nuevo.`,
+        });
+      }
+      libro.stock -= cantidad;
+      descontados.push({ libro, cantidad });
+    }
     const id = `demo-${Date.now()}`;
     pedidosDemo.push({ id, ...pedido, created_at: new Date().toISOString() });
     console.log('📦 Pedido (demo):', pedido.nombre, pedido.telefono, `$${pedido.total}`);
@@ -222,12 +243,79 @@ app.post('/api/pedidos', async (req, res) => {
   }
 
   try {
-    const id = await datos.crearPedido(pedido);
-    console.log('📦 Pedido recibido:', pedido.nombre, pedido.telefono, `$${pedido.total}`);
-    res.json({ ok: true, fuente: datos.fuente(), id });
+    // 1) Descontar stock (si algo falla, se devuelve lo ya descontado)
+    const descontados = [];
+    for (const d of detalles) {
+      const cantidad = Math.max(1, Number(d.cantidad) || 1);
+      const r = await datos.descontarStock(d.id, cantidad);
+      if (!r.ok) {
+        for (const x of descontados) await datos.devolverStock(x.id, x.cantidad).catch(() => {});
+        const libro = await datos.obtenerLibro(d.id).catch(() => null);
+        const nombreLibro = (libro && libro.titulo) || d.titulo || 'un libro';
+        return res.status(409).json({
+          error: `No quedan ejemplares suficientes de "${nombreLibro}". Quitá ese libro del carrito e intentá de nuevo.`,
+        });
+      }
+      descontados.push({ id: d.id, cantidad });
+    }
+
+    // 2) Crear el pedido (si falla, se devuelve el stock descontado)
+    try {
+      const id = await datos.crearPedido(pedido);
+      console.log('📦 Pedido recibido:', pedido.nombre, pedido.telefono, `$${pedido.total}`);
+      res.json({ ok: true, fuente: datos.fuente(), id });
+    } catch (e) {
+      for (const x of descontados) await datos.devolverStock(x.id, x.cantidad).catch(() => {});
+      throw e;
+    }
   } catch (e) {
     console.error('Error guardando pedido:', e.message);
     res.status(500).json({ error: 'No se pudo guardar el pedido', detalle: e.message });
+  }
+});
+
+// ============================================================
+//  CHAT CON IA — EL BUHITO SABIO 🦉
+//  (Gemini desde el backend: la clave nunca llega al navegador)
+// ============================================================
+app.post('/api/chat', async (req, res) => {
+  const ip =
+    (req.headers['x-forwarded-for'] || '').split(',')[0].trim() ||
+    req.socket.remoteAddress ||
+    'desconocida';
+
+  if (!ia.verLimite(ip)) {
+    return res.status(429).json({
+      error: 'Me estoy quedando sin magia por un minuto 😅. Esperá unos segundos y probá de nuevo.',
+    });
+  }
+
+  const { mensaje, historial, libro_id } = req.body || {};
+  const texto = String(mensaje || '').trim();
+  if (!texto) return res.status(400).json({ error: 'Escribí tu consulta para el Buhito Sabio' });
+  if (texto.length > 1000) {
+    return res.status(400).json({ error: 'Tu consulta es muy larga: máximo 1000 caracteres.' });
+  }
+
+  try {
+    // Catálogo disponible (los mismos libros que ve el cliente en la tienda)
+    let catalogo;
+    if (estaConectado()) {
+      catalogo = await datos.listarLibros({ soloActivos: true, soloConStock: true });
+    } else {
+      catalogo = librosDemo.filter((l) => l.activo && l.stock > 0);
+    }
+
+    // Libro que el cliente está mirando (si abrió el chat desde una ficha)
+    const libro = libro_id
+      ? catalogo.find((l) => String(l.id) === String(libro_id)) || null
+      : null;
+
+    const r = await ia.responder({ mensaje: texto, historial, catalogo, libro });
+    res.json({ respuesta: r.texto, fuente: r.fuente });
+  } catch (e) {
+    console.error('Error en /api/chat:', e.message);
+    res.status(502).json({ error: 'El búho tropezó con una rama ⚠️. Probá de nuevo en unos segundos.' });
   }
 });
 
