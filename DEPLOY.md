@@ -1,0 +1,86 @@
+# 🚀 Cómo publicar LibrosHernes en internet (Render)
+
+La tienda ya funciona en tu PC (`localhost:3000`), pero esa URL solo
+existe en tu computadora. Con estos pasos queda en una **URL pública**
+que abrís desde el celular, la tablet o cualquier compu.
+
+El archivo **`render.yaml`** de este repo ya trae la configuración
+lista, así que el paso manual es corto.
+
+---
+
+## Paso 1 — Crear la cuenta en Render
+
+1. Abrí <https://render.com>
+2. **Get Started for Free** → podés registrarte con tu cuenta de **GitHub**
+   (la misma del repo `JesusENavaG/LibrosHernes`).
+
+---
+
+## Paso 2 — Crear el servicio desde el blueprint
+
+1. En Render: **New** → **Blueprint**
+2. **Connect a repository** → elegí `JesusENavaG/LibrosHernes`
+3. Render va a leer el `render.yaml` y ya deja cargado el nombre,
+   el runtime de Node.js y las variables no secretas.
+
+---
+
+## Paso 3 — Pegar los valores secretos
+
+Render te va a pedir estas 4 variables (están marcadas como secretas en
+el `render.yaml`, así que no se suben a git). Copialas de tu archivo
+**`.env`** local:
+
+| Variable en Render | Valor (copiar de tu `.env`) |
+|---|---|
+| `SUPABASE_URL` | `https://fmdfqaweqafnlmlfwpqo.supabase.co` |
+| `SUPABASE_SERVICE_ROLE_KEY` | la clave `sb_secret_...` |
+| `DATABASE_URL` | la conexión `postgresql://...pooler.supabase.com...` |
+| `ADMIN_PASSWORD` | la contraseña del panel admin |
+
+> ⚠️ Estos valores son privados: nunca los compartas ni los subas a git.
+
+---
+
+## Paso 4 — Deploy
+
+1. **Create Web Service** → esperá 2 o 3 minutos.
+2. Cuando pase el health check (`/api/health`), tu tienda queda en vivo en:
+
+```
+https://libroshernes.onrender.com
+```
+
+- 📚 **Tienda:** `https://libroshernes.onrender.com`
+- 🛠️ **Panel admin:** `https://libroshernes.onrender.com/admin.html`
+
+---
+
+## ⚠️ Cosas a tener en cuenta (plan gratis)
+
+- **El servidor se duerme** a los ~15 minutos sin visitas. La **primera
+  vez** que entres puede tardar **~1 minuto** en cargar (Render lo
+  está despertando). Después queda rápido.
+- Cada vez que subas cambios a GitHub, Render **vuelve a publicar solo**.
+- Si un día Render borra el servicio por inactividad, volvé a crear el
+  blueprint desde el mismo repo: no se pierde nada.
+
+---
+
+## Después del despliegue: probar que todo funciona
+
+Entrá a la URL pública y fijate:
+
+1. El catálogo muestra tus **54 libros con las fotos reales**.
+2. El contador del hero dice **"54+"**.
+3. Los botones verdes de **WhatsApp** abren la conversación con el
+   mensaje armado.
+4. En el panel admin ingresás con tu `ADMIN_PASSWORD` y ves los 54 libros.
+
+---
+
+## 🛑 Cómo parar el servidor local
+
+Cuando publiques en Render ya no necesitás el `npm start` de tu PC.
+Para pararlo: andá a la consola donde corre y presioná `Ctrl + C`.
