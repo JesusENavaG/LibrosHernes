@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 600" role="img" aria-label="Cien años de soledad">
+  <defs>
+    <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#14532d"/>
+      <stop offset="100%" stop-color="#4d7c0f"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="600" fill="url(#g1)"/>
+  <rect x="0" y="0" width="26" height="600" fill="#052e16" opacity="0.55"/>
+  <g fill="none" stroke="#fde68a" stroke-width="2" opacity="0.65">
+    <circle cx="300" cy="120" r="55"/>
+    <path d="M60 470c60-40 120 40 180 0s100-40 100-40"/>
+  </g>
+  <text x="56" y="250" font-family="Georgia, serif" font-size="46" font-weight="bold" fill="#fde68a">Cien años</text>
+  <text x="56" y="305" font-family="Georgia, serif" font-size="46" font-weight="bold" fill="#fde68a">de soledad</text>
+  <line x1="56" y1="340" x2="220" y2="340" stroke="#fde68a" stroke-width="3"/>
+  <text x="56" y="520" font-family="Georgia, serif" font-size="22" fill="#ecfccb">Gabriel García Márquez</text>
+  <text x="56" y="560" font-family="Helvetica, Arial, sans-serif" font-size="14" fill="#bbf7d0" letter-spacing="4">LIBROSHERNES</text>
+</svg>

@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 600" role="img" aria-label="Harry Potter y la piedra filosofal">
+  <defs>
+    <linearGradient id="g6" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#1d4ed8"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="600" fill="url(#g6)"/>
+  <rect x="0" y="0" width="26" height="600" fill="#020617" opacity="0.65"/>
+  <g fill="#facc15" opacity="0.9">
+    <path d="M300 90 l7 20 l21 1 l-16 13 l6 21 l-18-12 l-18 12 l6-21 l-16-13 l21-1 z"/>
+    <circle cx="230" cy="160" r="3"/><circle cx="330" cy="180" r="2.5"/><circle cx="270" cy="220" r="2"/>
+  </g>
+  <path d="M255 400 l55-100 l12 34 l30-8 l-14 40 l34 22 l-52 14 l-26 42 z" fill="none" stroke="#facc15" stroke-width="3" opacity="0.85"/>
+  <text x="56" y="245" font-family="Georgia, serif" font-size="46" font-weight="bold" fill="#fef9c3">Harry Potter</text>
+  <text x="56" y="292" font-family="Georgia, serif" font-size="26" fill="#fde68a">y la piedra filosofal</text>
+  <line x1="56" y1="330" x2="300" y2="330" stroke="#facc15" stroke-width="3"/>
+  <text x="56" y="520" font-family="Georgia, serif" font-size="22" fill="#e0f2fe">J. K. Rowling</text>
+  <text x="56" y="560" font-family="Helvetica, Arial, sans-serif" font-size="14" fill="#bfdbfe" letter-spacing="4">LIBROSHERNES</text>
+</svg>

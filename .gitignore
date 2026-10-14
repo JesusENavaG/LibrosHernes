@@ -1,0 +1,15 @@
+node_modules/
+.env
+npm-debug.log*
+
+# Fotos originales en alta (2-3 MB c/u). Ya están procesadas
+# en Supabase Storage, no hace falta subirlas a git ni al deploy.
+imagenes-libros/
+
+# Copias locales de las fotos. En producción se sirven desde
+# el bucket de Supabase Storage (imagen_url apunta a la nube).
+public/img/libros/
+
+# Capturas de pantalla de revisión (no van al deploy)
+captura-*.png
+verificacion-*.png

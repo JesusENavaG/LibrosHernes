@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 600" role="img" aria-label="Rayuela">
+  <defs>
+    <linearGradient id="g5" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#581c87"/>
+      <stop offset="100%" stop-color="#db2777"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="600" fill="url(#g5)"/>
+  <rect x="0" y="0" width="26" height="600" fill="#3b0764" opacity="0.6"/>
+  <g fill="none" stroke="#fbcfe8" stroke-width="3" opacity="0.8">
+    <circle cx="300" cy="140" r="14"/>
+    <circle cx="255" cy="205" r="14"/>
+    <circle cx="315" cy="255" r="14"/>
+    <path d="M300 154 L262 191 M266 214 L308 244"/>
+  </g>
+  <text x="56" y="300" font-family="Georgia, serif" font-size="72" font-weight="bold" fill="#fdf2f8">Rayuela</text>
+  <line x1="56" y1="335" x2="300" y2="335" stroke="#fbcfe8" stroke-width="3"/>
+  <text x="56" y="390" font-family="Helvetica, Arial, sans-serif" font-size="20" fill="#fae8ff" letter-spacing="3">JULIO CORTÁZAR</text>
+  <text x="56" y="540" font-family="Georgia, serif" font-size="16" fill="#f5d0fe" font-style="italic">"Hay juegos que conviene no empezar"</text>
+  <text x="56" y="575" font-family="Helvetica, Arial, sans-serif" font-size="14" fill="#f5d0fe" letter-spacing="4">LIBROSHERNES</text>
+</svg>

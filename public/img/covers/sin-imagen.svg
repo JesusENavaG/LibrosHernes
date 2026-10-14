@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 600" role="img" aria-label="Libro sin imagen">
+  <rect width="400" height="600" fill="#e7e5e4"/>
+  <rect x="0" y="0" width="26" height="600" fill="#d6d3d1"/>
+  <g transform="translate(200 260)" fill="none" stroke="#a8a29e" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M-60 -40 h50 a20 20 0 0 1 20 20 v70 a15 15 0 0 0 -15 -15 h-55 z"/>
+    <path d="M60 -40 h-50 a20 20 0 0 0 -20 20 v70 a15 15 0 0 1 15 -15 h55 z"/>
+  </g>
+  <text x="200" y="390" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="22" fill="#78716c">Sin imagen</text>
+  <text x="200" y="560" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" fill="#a8a29e" letter-spacing="4">LIBROSHERNES</text>
+</svg>

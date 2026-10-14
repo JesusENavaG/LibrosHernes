@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 310 60" role="img" aria-label="LibrosHernes">
+  <g transform="translate(4 9)">
+    <path d="M4 6 C14 0 26 0 34 6 L34 42 C26 36 14 36 4 42 Z" fill="#b45309"/>
+    <path d="M34 6 C42 0 54 0 62 6 L62 42 C54 36 42 36 34 42 Z" fill="#d97706"/>
+    <path d="M34 6 L34 42" stroke="#7c2d12" stroke-width="3"/>
+  </g>
+  <text x="80" y="41" font-family="Georgia, serif" font-size="30" font-weight="bold" fill="#7c2d12">Libros</text>
+  <text x="182" y="41" font-family="Georgia, serif" font-size="30" font-weight="bold" fill="#d97706">Hernes</text>
+</svg>

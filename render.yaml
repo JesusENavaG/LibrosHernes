@@ -1,0 +1,47 @@
+# ============================================================
+#  LibrosHernes - Despliegue en Render (蓝图 blueprint)
+#
+#  Cómo usarlo:
+#  1. Subir este repo a GitHub (ya conectado: JesusENavaG/LibrosHernes)
+#  2. En render.com > New > Blueprint > elegir este repo
+#  3. Al crear el servicio, pegar los valores secretos en el
+#     formulario (los que están con sync: false)
+#
+#  El sitio queda en una URL pública tipo:
+#  https://libroshernes.onrender.com
+# ============================================================
+services:
+  - type: web
+    name: libroshernes
+    runtime: node
+    plan: free
+
+    # Node.js: instala dependencias y arranca el servidor
+    buildCommand: npm install
+    startCommand: node server.js
+
+    # Puerto: Render lo inyecta en la variable PORT,
+    # server.js ya la respeta (process.env.PORT || 3000)
+    healthCheckPath: /api/health
+
+    envVars:
+      # ---- No secretas: se pueden escribir acá ----
+      - key: WHATSAPP_NUMBER
+        value: 5491173667668
+      - key: BUCKET_IMAGENES
+        value: libros
+      - key: TABLA_LIBROS
+        value: libros
+      - key: TABLA_PEDIDOS
+        value: pedidos
+
+      # ---- Secretas: pegar el valor en el panel de Render ----
+      # (sync: false = Render las pide al desplegar, no se guardan en git)
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false

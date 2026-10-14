@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 600" role="img" aria-label="Don Quijote de la Mancha">
+  <defs>
+    <linearGradient id="g4" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#7c2d12"/>
+      <stop offset="100%" stop-color="#d97706"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="600" fill="url(#g4)"/>
+  <rect x="0" y="0" width="26" height="600" fill="#431407" opacity="0.6"/>
+  <g stroke="#fef3c7" stroke-width="4" fill="none" opacity="0.85">
+    <path d="M250 430 l40-140 l14 40 l30-10 l-16 46 l34 20 l-46 14 l-24 40 z"/>
+    <line x1="230" y1="470" x2="360" y2="470"/>
+  </g>
+  <text x="56" y="240" font-family="Georgia, serif" font-size="44" font-weight="bold" fill="#fef3c7">Don Quijote</text>
+  <text x="56" y="292" font-family="Georgia, serif" font-size="34" fill="#fde68a">de la Mancha</text>
+  <line x1="56" y1="330" x2="240" y2="330" stroke="#fde68a" stroke-width="3"/>
+  <text x="56" y="520" font-family="Georgia, serif" font-size="22" fill="#ffedd5">Miguel de Cervantes</text>
+  <text x="56" y="560" font-family="Helvetica, Arial, sans-serif" font-size="14" fill="#fed7aa" letter-spacing="4">LIBROSHERNES</text>
+</svg>

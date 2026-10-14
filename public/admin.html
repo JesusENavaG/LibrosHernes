@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Administración | LibrosHernes</title>
+  <link rel="icon" type="image/svg+xml" href="img/logo.svg" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+  <style>
+    /* Estilos exclusivos del panel de administración */
+    .admin { min-height: 100vh; padding: 2.5rem 0 4rem; }
+    .admin__top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem; }
+    .admin__top h1 { font-size: 1.8rem; }
+    .estado-bbdd { font-size: 0.85rem; padding: 0.4rem 0.9rem; border-radius: 999px; font-weight: 600; }
+    .estado-bbdd--ok { background: #d1fae5; color: #065f46; }
+    .estado-bbdd--demo { background: #fef3c7; color: #92400e; }
+
+    .login { max-width: 400px; margin: 4rem auto; background: #fff; padding: 2.2rem; border-radius: var(--radio); border: 1px solid var(--borde); box-shadow: var(--sombra-suave); text-align: center; }
+    .login h1 { font-size: 1.6rem; margin-bottom: 0.4rem; }
+    .login p { color: var(--tinta-suave); font-size: 0.9rem; margin-bottom: 1.4rem; }
+
+    .admin__grid { display: grid; grid-template-columns: 360px 1fr; gap: 1.8rem; align-items: start; }
+    @media (max-width: 900px) { .admin__grid { grid-template-columns: 1fr; } }
+
+    .panel { background: #fff; border: 1px solid var(--borde); border-radius: var(--radio); padding: 1.4rem; box-shadow: var(--sombra-suave); }
+    .panel h2 { font-size: 1.25rem; margin-bottom: 1rem; }
+    .panel .campo { margin-bottom: 0.8rem; }
+    .acciones-form { display: flex; gap: 0.6rem; margin-top: 1rem; }
+    .acciones-form .btn { flex: 1; }
+    .btn--peligro { background: #fee2e2; color: var(--rojo); }
+    .btn--peligro:hover { background: #fecaca; }
+
+    .lista-libros { display: flex; flex-direction: column; gap: 0.9rem; }
+    .fila-libro { display: grid; grid-template-columns: 56px 1fr auto; gap: 1rem; align-items: center; background: var(--crema); border: 1px solid var(--borde); border-radius: 12px; padding: 0.75rem; }
+    .fila-libro img { width: 56px; height: 72px; object-fit: cover; border-radius: 6px; background: var(--crema-2); }
+    .fila-libro h3 { font-size: 1rem; font-family: var(--fuente-texto); }
+    .fila-libro small { color: var(--tinta-suave); display: block; }
+    .fila-libro__precio { color: var(--ámbar); font-weight: 700; font-size: 0.95rem; }
+    .fila-libro__btns { display: flex; gap: 0.4rem; flex-direction: column; }
+    .fila-libro__btns button { border: 1px solid var(--borde); background: #fff; border-radius: 8px; padding: 0.35rem 0.8rem; font-size: 0.8rem; font-weight: 600; }
+    .fila-libro__btns button:hover { background: var(--crema-2); }
+    .etiqueta-inactiva { background: #fee2e2; color: #991b1b; font-size: 0.7rem; padding: 0.1rem 0.5rem; border-radius: 999px; font-weight: 700; }
+
+    .subida-imagen { border: 2px dashed var(--borde); border-radius: 10px; padding: 1rem; text-align: center; background: var(--crema); }
+    .subida-imagen input { margin-top: 0.5rem; font-size: 0.85rem; }
+    .vista-previa { max-width: 120px; border-radius: 8px; margin: 0.6rem auto 0; border: 1px solid var(--borde); }
+
+    .vacio { text-align: center; color: var(--tinta-suave); padding: 2rem 0; }
+  </style>
+</head>
+<body>
+  <!-- ==================== LOGIN ==================== -->
+  <section class="login" id="vistaLogin">
+    <h1>🛡️ Área administrativa</h1>
+    <p>LibrosHernes — ingresá tu contraseña para gestionar el catálogo</p>
+    <form id="formLogin">
+      <label class="campo" style="text-align:left">
+        <span>Contraseña</span>
+        <input type="password" id="passwordLogin" required autofocus placeholder="••••••••" />
+      </label>
+      <div class="errores" id="errorLogin" hidden></div>
+      <button type="submit" class="btn btn--primario btn--bloque">Ingresar</button>
+    </form>
+    <p style="margin-top:1.2rem"><a href="index.html" style="font-size:0.85rem;color:var(--ámbar)">← Volver a la tienda</a></p>
+  </section>
+
+  <!-- ==================== PANEL ==================== -->
+  <section class="admin" id="vistaPanel" hidden>
+    <div class="contenedor">
+      <div class="admin__top">
+        <h1>📚 Panel de libros</h1>
+        <div style="display:flex; gap:0.7rem; align-items:center; flex-wrap:wrap">
+          <span class="estado-bbdd" id="estadoBbdd">conectando...</span>
+          <a href="index.html" class="btn btn--sm" style="background:var(--crema-2);color:var(--tinta)">Ver tienda</a>
+          <button class="btn btn--sm btn--peligro" id="btnSalir">Salir</button>
+        </div>
+      </div>
+
+      <div class="admin__grid">
+        <!-- Formulario alta/edición -->
+        <div class="panel">
+          <h2 id="tituloForm">Agregar libro</h2>
+          <form id="formLibro">
+            <input type="hidden" name="id" />
+
+            <label class="campo">
+              <span>Título *</span>
+              <input type="text" name="titulo" required placeholder="Ej: El Aleph" />
+            </label>
+
+            <label class="campo">
+              <span>Autor</span>
+              <input type="text" name="autor" placeholder="Ej: Jorge Luis Borges" />
+            </label>
+
+            <label class="campo">
+              <span>Descripción</span>
+              <textarea name="descripcion" rows="4" placeholder="Sinopsis, estado del libro, edición..."></textarea>
+            </label>
+
+            <div class="campo-row">
+              <label class="campo">
+                <span>Precio ($) *</span>
+                <input type="number" name="precio" min="0" step="0.01" required placeholder="9999" />
+              </label>
+              <label class="campo">
+                <span>Stock</span>
+                <input type="number" name="stock" min="0" step="1" placeholder="10" />
+              </label>
+            </div>
+
+            <label class="campo">
+              <span>URL de la imagen (opcional)</span>
+              <input type="url" name="imagen_url" placeholder="https://..." />
+            </label>
+
+            <div class="subida-imagen">
+              <strong style="font-size:0.9rem">🖼️ Subir imagen a Supabase Storage</strong><br />
+              <small id="avisoSubida">Se guarda en el bucket <b>libros</b></small><br />
+              <input type="file" id="archivoImagen" accept="image/*" />
+              <img class="vista-previa" id="vistaPrevia" hidden alt="Vista previa" />
+            </div>
+
+            <label class="campo" style="display:flex; gap:0.5rem; align-items:center; margin-top:0.9rem">
+              <input type="checkbox" name="activo" checked style="width:auto" />
+              <span style="margin:0">Visible en la tienda</span>
+            </label>
+
+            <div class="errores" id="errorLibro" hidden></div>
+
+            <div class="acciones-form">
+              <button type="submit" class="btn btn--primario" id="btnGuardar">Guardar libro</button>
+              <button type="button" class="btn" id="btnCancelar" hidden style="background:var(--crema-2)">Cancelar</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Listado -->
+        <div class="panel">
+          <h2>Catálogo <span id="contadorLibros" style="font-size:0.9rem;color:var(--tinta-suave)"></span></h2>
+          <div class="lista-libros" id="listaLibros">
+            <p class="vacio">Cargando...</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="toast" id="toast" hidden></div>
+
+  <script src="js/admin.js"></script>
+</body>
+</html>

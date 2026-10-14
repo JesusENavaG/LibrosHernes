@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LibrosHernes | Tienda de libros físicos</title>
+  <meta name="description" content="LibrosHernes - Tienda de libros físicos. Pedí por WhatsApp o enviá tu pedido con nuestro formulario." />
+  <link rel="icon" type="image/svg+xml" href="img/logo.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+
+  <!-- ============================ HEADER ============================ -->
+  <header class="header" id="header">
+    <div class="contenedor header__contenido">
+      <a href="#" class="logo">
+        <img src="img/logo.svg" alt="LibrosHernes" />
+      </a>
+
+      <nav class="nav" id="nav">
+        <a href="#catalogo" class="nav__enlace">Catálogo</a>
+        <a href="#como-comprar" class="nav__enlace">Cómo comprar</a>
+        <a href="#contacto" class="nav__enlace">Contacto</a>
+        <a href="admin.html" class="nav__enlace nav__enlace--admin">Administración</a>
+      </nav>
+
+      <div class="header__acciones">
+        <a href="#" id="btnWhatsappHeader" class="btn btn--whatsapp btn--sm" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M17.47 14.38c-.3-.15-1.75-.86-2.02-.96-.27-.1-.47-.15-.67.15-.2.3-.77.96-.94 1.16-.17.2-.35.22-.65.07-.3-.15-1.25-.46-2.38-1.47-.88-.78-1.47-1.75-1.65-2.05-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.07-.15-.67-1.62-.92-2.22-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48s1.07 2.88 1.22 3.08c.15.2 2.1 3.2 5.08 4.49.71.31 1.26.49 1.69.63.71.23 1.36.19 1.87.12.57-.09 1.75-.72 2-1.41.25-.69.25-1.28.17-1.41-.07-.13-.27-.2-.57-.35zM12 2a10 10 0 0 0-8.6 15.06L2 22l5.06-1.33A10 10 0 1 0 12 2zm0 18.2a8.16 8.16 0 0 1-4.16-1.14l-.3-.18-3 .79.8-2.93-.2-.3A8.2 8.2 0 1 1 12 20.2z"/></svg>
+          <span>WhatsApp</span>
+        </a>
+        <button class="btn-carrito" id="btnCarrito" aria-label="Abrir carrito">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+          <span class="btn-carrito__contador" id="contadorCarrito">0</span>
+        </button>
+        <button class="btn-menu" id="btnMenu" aria-label="Menú">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- ============================ HERO ============================ -->
+    <section class="hero">
+      <div class="contenedor hero__contenido">
+        <div class="hero__texto">
+          <span class="etiqueta">📚 Librería online</span>
+          <h1>Libros <span class="resaltado">físicos</span> que llegan a tu puerta</h1>
+          <p class="hero__subtitulo">
+            Elegí de nuestro catálogo, armá tu pedido y recibilo donde estés.
+            Podés pedir <strong>por WhatsApp</strong> con mensaje listo o completar
+            <strong>nuestro formulario</strong> en dos minutos.
+          </p>
+          <div class="hero__botones">
+            <a href="#catalogo" class="btn btn--primario btn--lg">Ver catálogo</a>
+            <a href="#" id="btnWhatsappHero" class="btn btn--whatsapp btn--lg" target="_blank" rel="noopener">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M17.47 14.38c-.3-.15-1.75-.86-2.02-.96-.27-.1-.47-.15-.67.15-.2.3-.77.96-.94 1.16-.17.2-.35.22-.65.07-.3-.15-1.25-.46-2.38-1.47-.88-.78-1.47-1.75-1.65-2.05-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.07-.15-.67-1.62-.92-2.22-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48s1.07 2.88 1.22 3.08c.15.2 2.1 3.2 5.08 4.49.71.31 1.26.49 1.69.63.71.23 1.36.19 1.87.12.57-.09 1.75-.72 2-1.41.25-.69.25-1.28.17-1.41-.07-.13-.27-.2-.57-.35zM12 2a10 10 0 0 0-8.6 15.06L2 22l5.06-1.33A10 10 0 1 0 12 2zm0 18.2a8.16 8.16 0 0 1-4.16-1.14l-.3-.18-3 .79.8-2.93-.2-.3A8.2 8.2 0 1 1 12 20.2z"/></svg>
+              Pedir por WhatsApp
+            </a>
+          </div>
+          <ul class="hero__datos">
+            <li><strong id="statLibros">—</strong><span>libros disponibles</span></li>
+            <li><strong>24h</strong><span>respuesta a pedidos</span></li>
+            <li><strong>Envío</strong><span>a todo el país</span></li>
+          </ul>
+        </div>
+
+        <div class="hero__visual" aria-hidden="true">
+          <div class="pila-libros">
+            <img src="img/covers/cien-anos.svg" alt="" class="pila-libros__item pila-libros__item--1" />
+            <img src="img/covers/el-principito.svg" alt="" class="pila-libros__item pila-libros__item--2" />
+            <img src="img/covers/rayuela.svg" alt="" class="pila-libros__item pila-libros__item--3" />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================ CATÁLOGO ============================ -->
+    <section class="catalogo" id="catalogo">
+      <div class="contenedor">
+        <div class="seccion-titulo">
+          <span class="etiqueta">Nuestro catálogo</span>
+          <h2>Encontrá tu próximo libro</h2>
+          <p>Descripción, precio y opciones de compra en cada ficha.</p>
+        </div>
+
+        <div class="catalogo__filtros">
+          <div class="buscador">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="search" id="buscador" placeholder="Buscar por título o autor..." autocomplete="off" />
+          </div>
+          <select id="orden" class="select-orden" aria-label="Ordenar catálogo">
+            <option value="destacados">Ordenar: destacados</option>
+            <option value="precio-asc">Precio: menor a mayor</option>
+            <option value="precio-desc">Precio: mayor a menor</option>
+            <option value="titulo">Título A-Z</option>
+          </select>
+        </div>
+
+        <div class="catalogo__grid" id="gridLibros">
+          <p class="catalogo__cargando">Cargando libros...</p>
+        </div>
+
+        <p class="catalogo__aviso" id="avisoDemo" hidden>
+          ⚙️ Modo demostración: mostrando datos de ejemplo. Conectá Supabase para ver tu catálogo real.
+        </p>
+      </div>
+    </section>
+
+    <!-- ============================ CÓMO COMPRAR ============================ -->
+    <section class="pasos" id="como-comprar">
+      <div class="contenedor">
+        <div class="seccion-titulo">
+          <span class="etiqueta">Es fácil</span>
+          <h2>Cómo comprar</h2>
+        </div>
+        <div class="pasos__grid">
+          <article class="paso">
+            <span class="paso__numero">1</span>
+            <h3>Elegí tus libros</h3>
+            <p>Recorré el catálogo y agregá al carrito los libros que quieras comprar.</p>
+          </article>
+          <article class="paso">
+            <span class="paso__numero">2</span>
+            <h3>Envía tu pedido</h3>
+            <p>Por WhatsApp con el mensaje ya armado, o completando el formulario de requerimiento en la página.</p>
+          </article>
+          <article class="paso">
+            <span class="paso__numero">3</span>
+            <h3>Recibí en tu casa</h3>
+            <p>Coordinamos el envío y el pago. Te confirmamos todo por mensaje.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================ CONTACTO ============================ -->
+    <section class="cta" id="contacto">
+      <div class="contenedor cta__contenido">
+        <div>
+          <h2>¿No encontrás el libro que buscás?</h2>
+          <p>Escribinos y lo buscamos para vos. Respondemos rápido por WhatsApp.</p>
+        </div>
+        <a href="#" id="btnWhatsappCta" class="btn btn--whatsapp btn--lg" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M17.47 14.38c-.3-.15-1.75-.86-2.02-.96-.27-.1-.47-.15-.67.15-.2.3-.77.96-.94 1.16-.17.2-.35.22-.65.07-.3-.15-1.25-.46-2.38-1.47-.88-.78-1.47-1.75-1.65-2.05-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.07-.15-.67-1.62-.92-2.22-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48s1.07 2.88 1.22 3.08c.15.2 2.1 3.2 5.08 4.49.71.31 1.26.49 1.69.63.71.23 1.36.19 1.87.12.57-.09 1.75-.72 2-1.41.25-.69.25-1.28.17-1.41-.07-.13-.27-.2-.57-.35zM12 2a10 10 0 0 0-8.6 15.06L2 22l5.06-1.33A10 10 0 1 0 12 2zm0 18.2a8.16 8.16 0 0 1-4.16-1.14l-.3-.18-3 .79.8-2.93-.2-.3A8.2 8.2 0 1 1 12 20.2z"/></svg>
+          Escribinos ahora
+        </a>
+      </div>
+    </section>
+  </main>
+
+  <!-- ============================ FOOTER ============================ -->
+  <footer class="footer">
+    <div class="contenedor footer__contenido">
+      <div class="footer__marca">
+        <img src="img/logo.svg" alt="LibrosHernes" />
+        <p>Tienda de libros físicos. Pedidos por WhatsApp o formulario online.</p>
+      </div>
+      <div class="footer__col">
+        <h4>Navegación</h4>
+        <a href="#catalogo">Catálogo</a>
+        <a href="#como-comprar">Cómo comprar</a>
+        <a href="#contacto">Contacto</a>
+        <a href="admin.html">Administración</a>
+      </div>
+      <div class="footer__col">
+        <h4>Contacto</h4>
+        <a href="#" id="btnWhatsappFooter" target="_blank" rel="noopener">WhatsApp: 11 7366-7668</a>
+        <span>Atención: Lunes a viernes</span>
+      </div>
+    </div>
+    <div class="footer__bottom">
+      <p>© <span id="anio"></span> LibrosHernes — Todos los derechos reservados</p>
+    </div>
+  </footer>
+
+  <!-- ============================ DRAWER CARRITO ============================ -->
+  <div class="overlay" id="overlayCarrito" hidden></div>
+
+  <aside class="drawer" id="drawerCarrito" aria-label="Carrito de compras">
+    <div class="drawer__header">
+      <h3>Mi carrito</h3>
+      <button class="btn-cerrar" id="btnCerrarCarrito" aria-label="Cerrar carrito">✕</button>
+    </div>
+    <div class="drawer__cuerpo" id="cuerpoCarrito">
+      <p class="drawer__vacio">Tu carrito está vacío 📭</p>
+    </div>
+    <div class="drawer__pie" id="pieCarrito" hidden>
+      <div class="drawer__total">
+        <span>Total</span>
+        <strong id="totalCarrito">$ 0</strong>
+      </div>
+      <button class="btn btn--primario btn--bloque" id="btnIrPedido">
+        Completar pedido (formulario)
+      </button>
+      <button class="btn btn--whatsapp btn--bloque" id="btnWhatsappCarrito">
+        Pedir por WhatsApp
+      </button>
+    </div>
+  </aside>
+
+  <!-- ============================ MODAL DETALLE ============================ -->
+  <div class="modal" id="modalLibro" hidden>
+    <div class="modal__caja modal__caja--libro" role="dialog" aria-modal="true">
+      <button class="btn-cerrar modal__cerrar" data-cerrar="modalLibro" aria-label="Cerrar">✕</button>
+      <div class="detalle">
+        <div class="detalle__img">
+          <img id="detalleImagen" src="img/covers/sin-imagen.svg" alt="" />
+        </div>
+        <div class="detalle__info">
+          <h2 id="detalleTitulo"></h2>
+          <p class="detalle__autor" id="detalleAutor"></p>
+          <p class="detalle__precio" id="detallePrecio"></p>
+          <p class="detalle__descripcion" id="detalleDescripcion"></p>
+          <p class="detalle__stock" id="detalleStock"></p>
+          <div class="detalle__acciones">
+            <button class="btn btn--primario" id="btnDetalleAgregar">Agregar al carrito</button>
+            <button class="btn btn--whatsapp" id="btnDetalleWhatsapp">Comprar por WhatsApp</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================ MODAL PEDIDO (FORMULARIO) ============================ -->
+  <div class="modal" id="modalPedido" hidden>
+    <div class="modal__caja modal__caja--pedido" role="dialog" aria-modal="true">
+      <button class="btn-cerrar modal__cerrar" data-cerrar="modalPedido" aria-label="Cerrar">✕</button>
+
+      <div id="pedidoContenido">
+        <div class="pedido__titulo">
+          <h2>Formulario de requerimiento</h2>
+          <p>Completá tus datos y enviamos tu pedido. Te contactamos para coordinar envío y pago.</p>
+        </div>
+
+        <div class="pedido__resumen" id="pedidoResumen"></div>
+
+        <form id="formPedido" novalidate>
+          <div class="campo-row">
+            <label class="campo">
+              <span>Nombre y apellido *</span>
+              <input type="text" name="nombre" required placeholder="Ej: María González" />
+            </label>
+            <label class="campo">
+              <span>Teléfono / WhatsApp *</span>
+              <input type="tel" name="telefono" required placeholder="Ej: 11 5555-5555" />
+            </label>
+          </div>
+
+          <div class="campo-row">
+            <label class="campo">
+              <span>Email</span>
+              <input type="email" name="email" placeholder="Ej: maria@email.com" />
+            </label>
+            <label class="campo">
+              <span>Dirección de entrega</span>
+              <input type="text" name="direccion" placeholder="Ej: Av. Siempreviva 742" />
+            </label>
+          </div>
+
+          <label class="campo">
+            <span>Comentarios</span>
+            <textarea name="comentarios" rows="3" placeholder="Indicaciones extras, forma de pago preferida..."></textarea>
+          </label>
+
+          <div class="errores" id="erroresPedido" hidden></div>
+
+          <button type="submit" class="btn btn--primario btn--bloque btn--lg" id="btnEnviarPedido">
+            Enviar pedido
+          </button>
+
+          <button type="button" class="btn btn--whatsapp btn--bloque" id="btnWhatsappFormulario">
+            Enviar también por WhatsApp
+          </button>
+        </form>
+      </div>
+
+      <!-- Éxito -->
+      <div class="pedido-exito" id="pedidoExito" hidden>
+        <div class="pedido-exito__icono">✅</div>
+        <h2>¡Pedido enviado!</h2>
+        <p id="pedidoExitoTexto">Recibimos tu pedido. Te contactamos pronto para coordinar la entrega.</p>
+        <div class="pedido-exito__acciones">
+          <a href="#" id="btnWhatsappExito" class="btn btn--whatsapp" target="_blank" rel="noopener">Confirmar por WhatsApp</a>
+          <button class="btn btn--primario" data-cerrar="modalPedido">Seguir comprando</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast" hidden></div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
