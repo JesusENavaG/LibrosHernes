@@ -157,6 +157,11 @@ async function buscarDescripcion(titulo, autor = '') {
 // ------------------------------------------------------------
 //  Llamada a Gemini
 // ------------------------------------------------------------
+// Reintentos ante picos de demanda de Google (503/429/500):
+// el búho espera un poco y reintenta antes de rendirse.
+const REINTENTOS = 3;
+const ESPERA_REINTENTO = [1200, 2500]; // ms entre intentos
+
 async function llamarGemini({ systemInstruction, contents }) {
   const body = {
     systemInstruction: { parts: [{ text: systemInstruction }] },
@@ -165,24 +170,45 @@ async function llamarGemini({ systemInstruction, contents }) {
     generationConfig: {
       temperature: 0.7,
       maxOutputTokens: 800,
-      ...(GEMINI_MODEL.startsWith('gemini-2.5')
+      // Desactivamos el "pensamiento" interno en modelos 2.5+/3.x:
+      // responde más rápido y no gasta tokens del presupuesto en razonar.
+      ...(GEMINI_MODEL.startsWith('gemini-2.5') || GEMINI_MODEL.startsWith('gemini-3')
         ? { thinkingConfig: { thinkingBudget: 0 } }
         : {}),
     },
   };
 
-  const r = await fetch(GEMINI_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'x-goog-api-key': GEMINI_API_KEY },
-    body: JSON.stringify(body),
-    signal: AbortSignal.timeout(30_000),
-  });
+  let ultimoError;
+  for (let intento = 0; intento < REINTENTOS; intento++) {
+    try {
+      const r = await fetch(GEMINI_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': GEMINI_API_KEY },
+        body: JSON.stringify(body),
+        signal: AbortSignal.timeout(30_000),
+      });
 
-  if (!r.ok) {
-    const detalle = await r.text().catch(() => '');
-    throw new Error(`Gemini respondió ${r.status}: ${detalle.slice(0, 300)}`);
+      if (r.ok) return r.json();
+
+      const detalle = await r.text().catch(() => '');
+      ultimoError = new Error(`Gemini respondió ${r.status}: ${detalle.slice(0, 300)}`);
+
+      // Errores transitorios: reintentamos. Los demás (400, 401...) no.
+      const transitorio = [429, 500, 502, 503].includes(r.status);
+      if (!transitorio || intento === REINTENTOS - 1) throw ultimoError;
+
+      await new Promise((s) => setTimeout(s, ESPERA_REINTENTO[intento] || 2500));
+    } catch (e) {
+      if (e.name === 'AbortError' || e.name === 'TimeoutError') {
+        ultimoError = e;
+        if (intento === REINTENTOS - 1) throw e;
+        await new Promise((s) => setTimeout(s, ESPERA_REINTENTO[intento] || 2500));
+        continue;
+      }
+      throw e;
+    }
   }
-  return r.json();
+  throw ultimoError || new Error('Gemini no respondió');
 }
 
 function extraerPartes(data) {
@@ -206,30 +232,37 @@ async function responder({ mensaje, historial = [], catalogo = [], libro = null 
   contents.push({ role: 'user', parts: [{ text: String(mensaje).slice(0, 2000) }] });
 
   // Hasta 2 pasadas: la segunda solo si el búho pidió buscar en internet
-  for (let pasada = 0; pasada < 2; pasada++) {
-    const data = await llamarGemini({ systemInstruction, contents });
-    const partes = extraerPartes(data);
+  try {
+    for (let pasada = 0; pasada < 2; pasada++) {
+      const data = await llamarGemini({ systemInstruction, contents });
+      const partes = extraerPartes(data);
 
-    const llamadaFuncion = partes.find((p) => p.functionCall);
-    if (llamadaFuncion && pasada === 0) {
-      const { name, args } = llamadaFuncion.functionCall;
-      if (name === 'buscar_descripcion') {
-        console.log(`🦉 Buhito busca en internet: "${args.titulo}"`);
-        const resultado = await buscarDescripcion(args.titulo, args.autor || '');
-        contents.push({ role: 'model', parts: [{ functionCall: llamadaFuncion.functionCall }] });
-        contents.push({
-          role: 'user',
-          parts: [{ functionResponse: { name, response: resultado } }],
-        });
-        continue; // segunda pasada con el resultado cargado
+      const llamadaFuncion = partes.find((p) => p.functionCall);
+      if (llamadaFuncion && pasada === 0) {
+        const { name, args } = llamadaFuncion.functionCall;
+        if (name === 'buscar_descripcion') {
+          console.log(`🦉 Buhito busca en internet: "${args.titulo}"`);
+          const resultado = await buscarDescripcion(args.titulo, args.autor || '');
+          contents.push({ role: 'model', parts: [{ functionCall: llamadaFuncion.functionCall }] });
+          contents.push({
+            role: 'user',
+            parts: [{ functionResponse: { name, response: resultado } }],
+          });
+          continue; // segunda pasada con el resultado cargado
+        }
       }
+
+      const texto = partes.map((p) => p.text || '').join('').trim();
+      if (texto) return { texto, fuente: 'gemini' };
+
+      // Sin texto ni función: algo inesperado, cortamos
+      break;
     }
-
-    const texto = partes.map((p) => p.text || '').join('').trim();
-    if (texto) return { texto, fuente: 'gemini' };
-
-    // Sin texto ni función: algo inesperado, cortamos
-    break;
+  } catch (e) {
+    // Si Gemini sigue caído tras los reintentos, el búho NO falla:
+    // contesta con el catálogo en modo básico.
+    console.warn('🦉 Gemini falló tras reintentos, uso modo básico:', e.message.slice(0, 200));
+    return respuestaFallback(mensaje, catalogo);
   }
 
   return respuestaFallback(mensaje, catalogo);
