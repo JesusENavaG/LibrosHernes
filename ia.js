@@ -19,6 +19,7 @@ const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-3.5-flash';
 const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
 
 const configurado = () => Boolean(GEMINI_API_KEY);
+const modelo = () => GEMINI_MODEL;
 
 // ------------------------------------------------------------
 //  Límite de uso por IP (ventana deslizante de 1 minuto)
@@ -314,4 +315,4 @@ function respuestaFallback(mensaje, catalogo = []) {
   };
 }
 
-module.exports = { responder, configurado, verLimite, buscarDescripcion };
+module.exports = { responder, configurado, verLimite, buscarDescripcion, modelo };

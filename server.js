@@ -151,6 +151,7 @@ app.get('/api/config', (req, res) => {
     whatsapp: WHATSAPP_NUMBER,
     supabase_conectado: estaConectado(),
     ia_activa: ia.configurado(),
+    ia_modelo: ia.modelo(),
   });
 });
 
