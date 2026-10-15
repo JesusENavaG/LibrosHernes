@@ -12,7 +12,10 @@
 // ============================================================
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
-const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
+// Modelo por defecto: gemini-3.5-flash es el último "flash" estable
+// compatible con function calling y disponible para cuentas nuevas.
+// (gemini-2.5-flash ya no está disponible para cuentas nuevas: da 404)
+const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-3.5-flash';
 const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
 
 const configurado = () => Boolean(GEMINI_API_KEY);
