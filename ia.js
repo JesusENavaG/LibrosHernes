@@ -12,14 +12,56 @@
 // ============================================================
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
-// Modelo por defecto: gemini-3.5-flash es el último "flash" estable
-// compatible con function calling y disponible para cuentas nuevas.
-// (gemini-2.5-flash ya no está disponible para cuentas nuevas: da 404)
-const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-3.5-flash';
-const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
+
+// ------------------------------------------------------------
+//  Cadena de modelos (importante: la cuota GRATUITA de Gemini es
+//  por DÍA y por MODELO, unas 20 consultas por modelo. Por eso el
+//  búho tiene varios modelos en orden: si uno se queda sin cuota,
+//  pasa al siguiente automáticamente y sigue respondiendo.
+//  Se probó que TODOS de esta cadena responden y soportan la
+//  herramienta de búsqueda (function calling).
+// ------------------------------------------------------------
+const CADENA_MODELOS = [
+  'gemini-3.5-flash',        // el más equilibrado (principal)
+  'gemini-3.8-flash',        // el más nuevo
+  'gemini-3-flash-preview',  // estable
+  'gemini-3.1-flash-lite',   // lite: rápido y liviano
+  'gemini-3.5-flash-lite',   // lite
+  'gemini-flash-lite-latest',// lite (alias siempre actualizado)
+];
+
+// El modelo elegido en el .env (si existe) va primero en la cadena
+const GEMINI_MODEL = process.env.GEMINI_MODEL || '';
+const modelos = GEMINI_MODEL
+  ? [GEMINI_MODEL, ...CADENA_MODELOS.filter((m) => m !== GEMINI_MODEL)]
+  : [...CADENA_MODELOS];
+
+const urlDe = (nombre) =>
+  `https://generativelanguage.googleapis.com/v1beta/models/${nombre}:generateContent`;
 
 const configurado = () => Boolean(GEMINI_API_KEY);
-const modelo = () => GEMINI_MODEL;
+
+// Último modelo que respondió bien (para /api/config y diagnóstico)
+let modeloActivo = modelos[0];
+const modelo = () => modeloActivo;
+
+// Modelos sin cuota por el momento: nombre -> cuándo se libera (ms)
+const cuotasAgotadas = new Map();
+
+// ¿Este modelo acepta thinkingConfig? Los "lite" lo rechazan con 400
+const aceptaThinking = (nombre) =>
+  (nombre.startsWith('gemini-2.5') || nombre.startsWith('gemini-3')) && !nombre.includes('lite');
+
+// Parsea "Please retry in 9h14m32s" / retryDelay "33272s" -> timestamp
+function fechaReintentoCuota(detalle) {
+  const hm = detalle.match(/retry in (\d+)h(\d+)m([\d.]+)s/i);
+  if (hm) {
+    return Date.now() + (Number(hm[1]) * 3600 + Number(hm[2]) * 60 + Number(hm[3])) * 1000;
+  }
+  const segs = detalle.match(/"retryDelay":\s*"?(\d+(?:\.\d+)?)s/);
+  if (segs) return Date.now() + Number(segs[1]) * 1000;
+  return Date.now() + 10 * 60 * 1000; // si no se puede leer: 10 minutos
+}
 
 // ------------------------------------------------------------
 //  Límite de uso por IP (ventana deslizante de 1 minuto)
@@ -159,59 +201,117 @@ async function buscarDescripcion(titulo, autor = '') {
 }
 
 // ------------------------------------------------------------
-//  Llamada a Gemini
+//  Llamada a Gemini (con cadena de modelos)
+//
+//  La cuota gratuita es POR DÍA y POR MODELO (~20 consultas).
+//  Estrategia del búho:
+//   1. Intenta con el primer modelo de la cadena.
+//   2. Si se agota la cuota (429), anota hasta cuándo falta y
+//      pasa al siguiente modelo de la cadena.
+//   3. Si hay pico de demanda (503) o timeout, reintenta ese
+//      modelo un par de veces antes de pasar al siguiente.
+//   4. Si TODOS fallan, se rinde y el modo básico contesta.
 // ------------------------------------------------------------
-// Reintentos ante picos de demanda de Google (503/429/500):
-// el búho espera un poco y reintenta antes de rendirse.
-const REINTENTOS = 3;
+const REINTENTOS = 2;
 const ESPERA_REINTENTO = [1200, 2500]; // ms entre intentos
+const LIMITE_TOTAL_MS = 20_000; // no más de ~20s antes de rendirse y usar el modo básico
+
+// Modelos con problemas transitorios (503): se relegan al final unos
+// minutos para no hacer esperar al cliente con modelos caídos.
+const modelosFlacos = new Map(); // nombre -> se recupera en (ms)
+
+function ordenModelos() {
+  const ahora = Date.now();
+  // sort es estable: los sanos mantienen el orden de la cadena
+  return [...modelos].sort((a, b) => {
+    const fa = (modelosFlacos.get(a) || 0) > ahora ? 1 : 0;
+    const fb = (modelosFlacos.get(b) || 0) > ahora ? 1 : 0;
+    return fa - fb;
+  });
+}
 
 async function llamarGemini({ systemInstruction, contents }) {
-  const body = {
-    systemInstruction: { parts: [{ text: systemInstruction }] },
-    contents,
-    tools: [{ functionDeclarations: HERRAMIENTAS }],
-    generationConfig: {
-      temperature: 0.7,
-      maxOutputTokens: 800,
-      // Desactivamos el "pensamiento" interno en modelos 2.5+/3.x:
-      // responde más rápido y no gasta tokens del presupuesto en razonar.
-      ...(GEMINI_MODEL.startsWith('gemini-2.5') || GEMINI_MODEL.startsWith('gemini-3')
-        ? { thinkingConfig: { thinkingBudget: 0 } }
-        : {}),
-    },
-  };
-
   let ultimoError;
-  for (let intento = 0; intento < REINTENTOS; intento++) {
-    try {
-      const r = await fetch(GEMINI_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': GEMINI_API_KEY },
-        body: JSON.stringify(body),
-        signal: AbortSignal.timeout(30_000),
-      });
+  const inicio = Date.now();
 
-      if (r.ok) return r.json();
+  for (const nombre of ordenModelos()) {
+    // ¿Ya se le acabó el tiempo de intentos? no arriesgamos más
+    if (Date.now() - inicio > LIMITE_TOTAL_MS) break;
 
-      const detalle = await r.text().catch(() => '');
-      ultimoError = new Error(`Gemini respondió ${r.status}: ${detalle.slice(0, 300)}`);
+    // Modelo sin cuota por ahora: lo saltamos
+    const libreDesde = cuotasAgotadas.get(nombre);
+    if (libreDesde && Date.now() < libreDesde) continue;
 
-      // Errores transitorios: reintentamos. Los demás (400, 401...) no.
-      const transitorio = [429, 500, 502, 503].includes(r.status);
-      if (!transitorio || intento === REINTENTOS - 1) throw ultimoError;
+    const body = {
+      systemInstruction: { parts: [{ text: systemInstruction }] },
+      contents,
+      tools: [{ functionDeclarations: HERRAMIENTAS }],
+      generationConfig: {
+        temperature: 0.7,
+        maxOutputTokens: 800,
+        // Sin "pensamiento" interno: responde más rápido y no gasta tokens.
+        // (los modelos lite rechazan este parámetro con 400, por eso solo
+        //  se envía a los que lo aceptan)
+        ...(aceptaThinking(nombre) ? { thinkingConfig: { thinkingBudget: 0 } } : {}),
+      },
+    };
 
-      await new Promise((s) => setTimeout(s, ESPERA_REINTENTO[intento] || 2500));
-    } catch (e) {
-      if (e.name === 'AbortError' || e.name === 'TimeoutError') {
-        ultimoError = e;
-        if (intento === REINTENTOS - 1) throw e;
+    for (let intento = 0; intento < REINTENTOS; intento++) {
+      // Respetamos el tiempo total: si ya casi se acabó, no empezamos
+      // otro intento (mejor contestar con el modo básico que hacer esperar)
+      const restante = LIMITE_TOTAL_MS - (Date.now() - inicio);
+      if (restante < 3000) break;
+
+      try {
+        const r = await fetch(urlDe(nombre), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-goog-api-key': GEMINI_API_KEY },
+          body: JSON.stringify(body),
+          signal: AbortSignal.timeout(Math.min(30_000, restante)),
+        });
+
+        if (r.ok) {
+          modeloActivo = nombre; // recordamos cuál está funcionando
+          if (nombre !== modelos[0]) {
+            console.log(`🦉 Buhito respondió con el modelo alternativo: ${nombre}`);
+          }
+          return r.json();
+        }
+
+        const detalle = await r.text().catch(() => '');
+        ultimoError = new Error(`Gemini (${nombre}) respondió ${r.status}: ${detalle.slice(0, 200)}`);
+
+        // Cuota agotada de este modelo: anotamos cuándo se libera
+        // y probamos con el siguiente de la cadena.
+        if (r.status === 429) {
+          cuotasAgotadas.set(nombre, fechaReintentoCuota(detalle));
+          console.log(`🦉 Modelo ${nombre} sin cuota por ahora, paso al siguiente`);
+          break;
+        }
+
+        // Picos de demanda (500/502/503): esperamos y reintentamos.
+        // Si se agotan los intentos, relegamos el modelo un rato.
+        const transitorio = [500, 502, 503].includes(r.status);
+        if (!transitorio || intento === REINTENTOS - 1) {
+          if (transitorio) {
+            modelosFlacos.set(nombre, Date.now() + 10 * 60 * 1000);
+            console.log(`🦉 Modelo ${nombre} con problemas, lo dejo para después`);
+          }
+          break; // siguiente modelo
+        }
         await new Promise((s) => setTimeout(s, ESPERA_REINTENTO[intento] || 2500));
-        continue;
+      } catch (e) {
+        ultimoError = e;
+        const timeout = e.name === 'AbortError' || e.name === 'TimeoutError';
+        if (!timeout || intento === REINTENTOS - 1) {
+          if (timeout) modelosFlacos.set(nombre, Date.now() + 10 * 60 * 1000);
+          break; // siguiente modelo
+        }
+        await new Promise((s) => setTimeout(s, ESPERA_REINTENTO[intento] || 2500));
       }
-      throw e;
     }
   }
+
   throw ultimoError || new Error('Gemini no respondió');
 }
 
@@ -283,36 +383,55 @@ function respuestaFallback(mensaje, catalogo = []) {
   // Palabras con sentido del mensaje del cliente (mínimo 4 letras)
   const palabrasBuscadas = buscado.split(/\W+/).filter((p) => p.length >= 4);
 
-  const coincidencia =
-    palabrasBuscadas.length >= 1
-      ? (catalogo || []).find((l) => {
-          const t = sinTildes(l.titulo || '');
-          const a = sinTildes(l.autor || '');
-          if (t && (buscado.includes(t) || t.includes(buscado))) return true;
-          const palabrasLibro = (t + ' ' + a).split(/\W+/).filter((p) => p.length >= 4);
-          return palabrasLibro.some((p) => palabrasBuscadas.includes(p));
-        })
-      : null;
-
-  if (coincidencia) {
-    return {
-      texto:
-        `Encontré este libro en nuestro catálogo 📚\n\n` +
-        `${coincidencia.titulo}${coincidencia.autor ? ` — ${coincidencia.autor}` : ''}\n` +
-        `Precio: $${coincidencia.precio}\n` +
-        `Stock: ${coincidencia.stock > 0 ? `${coincidencia.stock} unidades disponibles ✅` : 'agotado por el momento ❌'}\n\n` +
-        `Podés agregarlo al carrito o escribirnos por WhatsApp 🦉`,
-      fuente: 'fallback',
-    };
-  }
-
-  return {
+  const saludo = () => ({
     texto:
       `¡Hola! Soy el Buhito Sabio 🦉 de LibrosHernes.\n\n` +
       `Podés preguntarme por el precio, stock o disponibilidad de cualquier libro del catálogo, o pedirme que te recomiende algo.\n\n` +
       `Contame qué estás buscando —título, autor o género— y con gusto te ayudo a encontrarlo 📚`,
     fuente: 'fallback',
-  };
+  });
+
+  const ficha = (l) =>
+    `${l.titulo}${l.autor ? ` — ${l.autor}` : ''}\n` +
+    `Precio: $${l.precio}\n` +
+    `Stock: ${l.stock > 0 ? `${l.stock} unidades disponibles ✅` : 'agotado por el momento ❌'}`;
+
+  if (!palabrasBuscadas.length || !(catalogo || []).length) return saludo();
+
+  // 1) Coincidencia fuerte: por TÍTULO
+  const porTitulo =
+    catalogo.find((l) => {
+      const t = sinTildes(l.titulo || '');
+      return t && buscado.includes(t);
+    }) ||
+    catalogo.find((l) => {
+      const palabrasTitulo = sinTildes(l.titulo || '').split(/\W+/).filter((p) => p.length >= 4);
+      return palabrasTitulo.some((p) => palabrasBuscadas.includes(p));
+    });
+
+  if (porTitulo) {
+    return {
+      texto: `Encontré este libro en nuestro catálogo 📚\n\n${ficha(porTitulo)}\n\n` +
+        `Podés agregarlo al carrito o escribirnos por WhatsApp 🦉`,
+      fuente: 'fallback',
+    };
+  }
+
+  // 2) Coincidencia débil: mismo AUTOR (el título buscado puede no estar)
+  const porAutor = catalogo.find((l) => {
+    const palabrasAutor = sinTildes(l.autor || '').split(/\W+/).filter((p) => p.length >= 4);
+    return palabrasAutor.some((p) => palabrasBuscadas.includes(p));
+  });
+
+  if (porAutor) {
+    return {
+      texto: `No veo ese título exacto en el catálogo, pero de ese autor tengo este 📚\n\n${ficha(porAutor)}\n\n` +
+        `Si buscás otro título, escribinos por WhatsApp y te lo conseguimos 🦉`,
+      fuente: 'fallback',
+    };
+  }
+
+  return saludo();
 }
 
 module.exports = { responder, configurado, verLimite, buscarDescripcion, modelo };

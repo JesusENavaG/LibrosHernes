@@ -46,19 +46,33 @@ el `render.yaml`, así que no se suben a git). Copialas de tu archivo
 
 ## Paso 3b — Activar el chat del Buhito Sabio 🦉 (gratis)
 
-El chat con IA usa **Google Gemini**, que tiene un nivel gratuito muy
-generoso (15 pedidos por minuto y 1 millón de tokens por día). Pasos:
+El chat con IA usa **Google Gemini** (nivel gratuito). Pasos:
 
 1. Entrá a <https://aistudio.google.com/apikey> (con cualquier cuenta
    de Google).
-2. **Create API key** → copiá la clave (`AIza...`).
-3. Pegala en Render como variable `GEMINI_API_KEY` y (opcionalmente)
-   `GEMINI_MODEL=gemini-2.5-flash`.
+2. **Create API key** → copiá la clave.
+3. Pegala en Render como variable `GEMINI_API_KEY`.
 4. En tu PC: pegala también en tu `.env` local (`GEMINI_API_KEY=...`)
    y reiniciá con `npm start`.
 
 > 💡 Sin la clave, el chat igual funciona en modo básico (responde
 > precio y stock desde el catálogo), pero sin la magia completa del búho.
+
+### Sobre la cuota gratuita (importante)
+
+La cuota gratis de Gemini es **por día y por modelo** (unas 20 consultas
+por modelo). Para que el Buhito no se quede sin magia, el código usa una
+**cadena de modelos** (`ia.js` → `CADENA_MODELOS`): si uno se queda sin
+cuota o tiene un pico de demanda, pasa automáticamente al siguiente. Si
+se agotan TODOS, responde con el modo básico del catálogo (nunca deja
+al cliente sin respuesta).
+
+- Los modelos se resetean **cada día** (medianoche hora de California).
+- No hace falta configurar `GEMINI_MODEL`: el valor por defecto ya usa
+  la cadena. Solo definilo si querés forzar un modelo puntual.
+- Si el negocio crece y necesitan más consultas por día, se puede
+  activar el plan de pago de Gemini (muy barato) o agregar otra
+  cuenta/clave a la cadena.
 
 ### Importante: función de stock seguro (una sola vez)
 
