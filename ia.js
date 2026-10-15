@@ -306,7 +306,7 @@ function respuestaFallback(mensaje, catalogo = []) {
     texto:
       `¡Hola! Soy el Buhito Sabio 🦉 de LibrosHernes.\n\n` +
       `Podés preguntarme por el precio, stock o disponibilidad de cualquier libro del catálogo, o pedirme que te recomiende algo.\n\n` +
-      `Por ahora mi magia principal está en pausa (falta configurar la clave de IA del servidor), pero el catálogo de la tienda siempre está a mano 📚`,
+      `Contame qué estás buscando —título, autor o género— y con gusto te ayudo a encontrarlo 📚`,
     fuente: 'fallback',
   };
 }
