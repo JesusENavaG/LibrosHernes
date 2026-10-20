@@ -538,10 +538,15 @@ function manejarClicksCatalogo(evento) {
   }
 }
 
-// Abre el chat del Buhito Sabio en una pestaña nueva,
+// Abre el chat del Buhito Sabio superpuesto sobre la propia tienda,
 // contextualizado con el libro que el cliente está mirando
 function abrirChatBuho(libro) {
-  window.open(`chat.html?libro=${encodeURIComponent(libro.id)}`, '_blank', 'noopener');
+  if (typeof window.abrirBuhito === 'function') {
+    window.abrirBuhito(libro);
+    return;
+  }
+  // Respaldo por si el widget no cargó
+  window.open('/?chat=1', '_blank', 'noopener');
 }
 
 function init() {

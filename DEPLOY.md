@@ -119,8 +119,9 @@ Entrá a la URL pública y fijate:
    mensaje armado.
 4. En el panel admin ingresás con tu `ADMIN_PASSWORD` y ves los 54 libros.
 5. El **botón flotante del búho** 🦉 (esquina inferior derecha) y el
-   botón "Consultar al búho" de cada libro abren el chat y el Buhito
-   responde precios, stock y recomendaciones.
+   botón "Consultar al búho" de cada libro abren el chat **superpuesto
+   sobre la propia tienda** (se puede seguir recorriendo los libros con
+   el chat abierto) y el Buhito responde precios, stock y recomendaciones.
 
 ---
 
