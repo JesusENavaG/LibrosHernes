@@ -6,7 +6,7 @@
   <!-- El panel nunca aparece en buscadores -->
   <meta name="robots" content="noindex, nofollow, noarchive" />
   <title>Administración | LibrosHernes</title>
-  <link rel="icon" type="image/svg+xml" href="/img/logo.svg" />
+  <link rel="icon" type="image/png" href="/img/favicon.png" />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/css/styles.css" />
   <style>
@@ -26,7 +26,7 @@
     .login {
       width: 100%;
       max-width: 400px;
-      background: #fff;
+      background: var(--blanco);
       border: 1px solid var(--borde);
       border-radius: 18px;
       overflow: hidden;
@@ -37,7 +37,7 @@
       background: linear-gradient(90deg, var(--ámbar-hover) 0%, var(--ámbar) 55%, var(--ámbar-claro) 100%);
     }
     .login__cuerpo { padding: 2.3rem 2.1rem 2rem; text-align: center; }
-    .login__logo { width: auto; height: 44px; margin: 0 auto 1rem; display: block; }
+    .login__logo { width: auto; height: 64px; margin: 0 auto 1rem; display: block; border-radius: 8px; }
     .login h1 {
       font-family: var(--fuente-titulo);
       font-size: 1.85rem;
@@ -90,7 +90,7 @@
     .admin__grid { display: grid; grid-template-columns: 360px 1fr; gap: 1.8rem; align-items: start; }
     @media (max-width: 900px) { .admin__grid { grid-template-columns: 1fr; } }
 
-    .panel { background: #fff; border: 1px solid var(--borde); border-radius: var(--radio); padding: 1.4rem; box-shadow: var(--sombra-suave); }
+    .panel { background: var(--blanco); border: 1px solid var(--borde); border-radius: var(--radio); padding: 1.4rem; box-shadow: var(--sombra-suave); }
     .panel h2 { font-size: 1.25rem; margin-bottom: 1rem; }
     .panel .campo { margin-bottom: 0.8rem; }
     .acciones-form { display: flex; gap: 0.6rem; margin-top: 1rem; }
@@ -105,7 +105,7 @@
     .fila-libro small { color: var(--tinta-suave); display: block; }
     .fila-libro__precio { color: var(--ámbar); font-weight: 700; font-size: 0.95rem; }
     .fila-libro__btns { display: flex; gap: 0.4rem; flex-direction: column; }
-    .fila-libro__btns button { border: 1px solid var(--borde); background: #fff; border-radius: 8px; padding: 0.35rem 0.8rem; font-size: 0.8rem; font-weight: 600; }
+    .fila-libro__btns button { border: 1px solid var(--borde); background: var(--blanco); border-radius: 8px; padding: 0.35rem 0.8rem; font-size: 0.8rem; font-weight: 600; }
     .fila-libro__btns button:hover { background: var(--crema-2); }
     .etiqueta-inactiva { background: #fee2e2; color: #991b1b; font-size: 0.7rem; padding: 0.1rem 0.5rem; border-radius: 999px; font-weight: 700; }
 
@@ -122,7 +122,7 @@
     <div class="login">
       <div class="login__banda"></div>
       <div class="login__cuerpo">
-        <img class="login__logo" src="/img/logo.svg" alt="" />
+        <img class="login__logo" src="/img/logo-verde.png" alt="" />
         <h1>Administración</h1>
         <p class="login__bajada">Ingresá tu contraseña para gestionar el catálogo de LibrosHernes.</p>
 
