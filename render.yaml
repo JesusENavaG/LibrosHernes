@@ -34,6 +34,9 @@ services:
         value: libros
       - key: TABLA_PEDIDOS
         value: pedidos
+      # Ruta secreta del panel de administración (cambiar por una palabra propia)
+      - key: ADMIN_RUTA
+        value: admin
 
       # ---- Secretas: pegar el valor en el panel de Render ----
       # (sync: false = Render las pide al desplegar, no se guardan en git)

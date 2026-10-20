@@ -111,6 +111,42 @@ app.use(express.json({ limit: '8mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 // ------------------------------------------------------------
+//  PANEL DE ADMINISTRACIÓN - RUTA OCULTA
+//  El panel NO vive en /public: solo se sirve en la ruta secreta
+//  (por defecto /admin, configurable con ADMIN_RUTA en .env).
+//  No hay ningún enlace hacia ella en la tienda y los buscadores
+//  no la indexan.
+// ------------------------------------------------------------
+const RUTA_ADMIN = ('/' + String(process.env.ADMIN_RUTA || 'admin').replace(/^\/+|\/+$/g, '')).toLowerCase();
+const VISTA_ADMIN = path.join(__dirname, 'views', 'admin.html');
+const SCRIPT_ADMIN = path.join(__dirname, 'views', 'admin.js');
+
+app.use((req, res, next) => {
+  if (req.method !== 'GET') return next();
+
+  const ruta = (req.path.length > 1 ? req.path.replace(/\/+$/, '') : req.path).toLowerCase();
+
+  // El HTML del panel
+  if (ruta === RUTA_ADMIN) {
+    res.set('X-Robots-Tag', 'noindex, nofollow, noarchive');
+    if (!fs.existsSync(VISTA_ADMIN)) return res.status(404).send('No encontrado');
+    return res.type('html').send(fs.readFileSync(VISTA_ADMIN, 'utf8').split('__RUTA_ADMIN__').join(RUTA_ADMIN));
+  }
+
+  // El script del panel (solo se sirve junto con la ruta secreta)
+  if (ruta === `${RUTA_ADMIN}.js`) {
+    res.set('X-Robots-Tag', 'noindex, nofollow, noarchive');
+    if (!fs.existsSync(SCRIPT_ADMIN)) return res.status(404).send('No encontrado');
+    return res.type('application/javascript').send(fs.readFileSync(SCRIPT_ADMIN, 'utf8'));
+  }
+
+  // La dirección vieja ya no existe: manda a la tienda
+  if (ruta === '/admin.html') return res.redirect('/');
+
+  next();
+});
+
+// ------------------------------------------------------------
 // Utilidades
 // ------------------------------------------------------------
 const soloNumeros = (v) => String(v || '').replace(/\D/g, '');
@@ -324,11 +360,45 @@ app.post('/api/chat', async (req, res) => {
 //  API DE ADMINISTRACIÓN
 // ============================================================
 
+// Intentos fallidos de login por IP (fuerza bruta)
+const intentosLogin = new Map(); // ip -> { fallos, bloqueadoHasta }
+const MAX_FALLOS = 5;
+const BLOQUEO_MS = 15 * 60 * 1000;
+
+function ipDe(req) {
+  return (req.headers['x-forwarded-for'] || '').split(',')[0].trim() ||
+    req.socket.remoteAddress ||
+    'desconocida';
+}
+
 app.post('/api/admin/login', (req, res) => {
+  const ip = ipDe(req);
+  const registro = intentosLogin.get(ip);
+
+  if (registro && registro.bloqueadoHasta > Date.now()) {
+    const minutos = Math.ceil((registro.bloqueadoHasta - Date.now()) / 60000);
+    return res.status(429).json({
+      error: `Demasiados intentos fallidos. Intentá de nuevo en ${minutos} minuto${minutos === 1 ? '' : 's'}.`,
+    });
+  }
+
   const { password } = req.body || {};
   if (!esPasswordValida(password)) {
+    const r = registro || { fallos: 0, bloqueadoHasta: 0 };
+    r.fallos += 1;
+    const fallos = r.fallos;
+    if (r.fallos >= MAX_FALLOS) {
+      r.bloqueadoHasta = Date.now() + BLOQUEO_MS;
+      r.fallos = 0;
+      console.log('🔒 IP bloqueada 15 min tras ' + fallos + ' intentos fallidos:', ip);
+    } else {
+      console.log('⚠️  Login fallido (' + fallos + '/' + MAX_FALLOS + ') IP:', ip);
+    }
+    intentosLogin.set(ip, r);
     return res.status(401).json({ error: 'Contraseña incorrecta' });
   }
+
+  intentosLogin.delete(ip);
   res.json({ ok: true, token: crearToken() });
 });
 
@@ -481,7 +551,17 @@ app.use((err, req, res, next) => {
 app.listen(PORT, () => {
   console.log('==============================================');
   console.log('  📚 LibrosHernes en http://localhost:' + PORT);
-  console.log('  🛠  Panel admin: http://localhost:' + PORT + '/admin.html');
+  console.log('  🔒 Panel admin (ruta oculta): http://localhost:' + PORT + RUTA_ADMIN);
   console.log('  🔌 Supabase: ' + (estaConectado() ? 'conectado ✅' : 'modo demo ⚙️'));
   console.log('==============================================');
 });
+
+// Limpieza periódica de sesiones e intentos de login viejos
+setInterval(() => {
+  const ahora = Date.now();
+  for (const [t, expira] of tokens) if (ahora > expira) tokens.delete(t);
+  for (const [ip, r] of intentosLogin) {
+    if (r.bloqueadoHasta && ahora > r.bloqueadoHasta + BLOQUEO_MS) intentosLogin.delete(ip);
+    else if (!r.bloqueadoHasta && r.fallos === 0) intentosLogin.delete(ip);
+  }
+}, 10 * 60 * 1000).unref();

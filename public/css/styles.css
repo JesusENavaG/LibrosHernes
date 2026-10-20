@@ -126,7 +126,6 @@ h1, h2, h3 { font-family: var(--fuente-titulo); line-height: 1.15; }
   transition: color 0.15s;
 }
 .nav__enlace:hover { color: var(--ámbar); }
-.nav__enlace--admin { font-size: 0.85rem; opacity: 0.7; }
 
 .header__acciones { display: flex; align-items: center; gap: 0.7rem; }
 

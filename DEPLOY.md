@@ -94,7 +94,7 @@ https://libroshernes.onrender.com
 ```
 
 - 📚 **Tienda:** `https://libroshernes.onrender.com`
-- 🛠️ **Panel admin:** `https://libroshernes.onrender.com/admin.html`
+- 🔒 **Panel admin:** `https://libroshernes.onrender.com/admin` (ruta oculta: no hay enlaces en la tienda; cambiá `ADMIN_RUTA` en Render para usar otra dirección)
 
 ---
 

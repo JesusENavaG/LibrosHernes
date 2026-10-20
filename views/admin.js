@@ -109,8 +109,8 @@ function renderizarLista() {
     .map(
       (l) => `
       <div class="fila-libro">
-        <img src="${escapeHtml(l.imagen_url || 'img/covers/sin-imagen.svg')}" alt=""
-             onerror="this.src='img/covers/sin-imagen.svg'" />
+        <img src="${escapeHtml(l.imagen_url || '/img/covers/sin-imagen.svg')}" alt=""
+             onerror="this.src='/img/covers/sin-imagen.svg'" />
         <div>
           <h3>${escapeHtml(l.titulo)} ${l.activo ? '' : '<span class="etiqueta-inactiva">OCULTO</span>'}</h3>
           <small>${escapeHtml(l.autor || 'Sin autor')} · Stock: ${l.stock}</small>

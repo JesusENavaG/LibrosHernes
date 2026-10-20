@@ -6,7 +6,7 @@ const puppeteer = require('puppeteer-core');
 const path = require('path');
 
 const CHROME = 'C:/Program Files/Google/Chrome/Application/chrome.exe';
-const BASE = 'http://localhost:3000';
+const BASE = process.env.BASE || 'http://localhost:3000';
 const salida = (nombre) => path.join(__dirname, '..', nombre);
 
 (async () => {
@@ -56,7 +56,7 @@ const salida = (nombre) => path.join(__dirname, '..', nombre);
   const page2 = await browser.newPage();
   await page2.setViewport({ width: 1366, height: 900 });
   page2.on('pageerror', (e) => errores.push('ADMIN PAGEERROR: ' + e.message));
-  await page2.goto(BASE + '/admin.html', { waitUntil: 'networkidle0', timeout: 30000 });
+  await page2.goto(BASE + '/admin', { waitUntil: 'networkidle0', timeout: 30000 });
   await new Promise((r) => setTimeout(r, 500));
   await page2.screenshot({ path: salida('captura-admin-login.png') });
 

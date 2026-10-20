@@ -3,22 +3,89 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- El panel nunca aparece en buscadores -->
+  <meta name="robots" content="noindex, nofollow, noarchive" />
   <title>Administración | LibrosHernes</title>
-  <link rel="icon" type="image/svg+xml" href="img/logo.svg" />
+  <link rel="icon" type="image/svg+xml" href="/img/logo.svg" />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="/css/styles.css" />
   <style>
     /* Estilos exclusivos del panel de administración */
+
+    /* ---------- Pantalla de acceso ---------- */
+    .acceso {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 2rem 1rem;
+      background:
+        radial-gradient(1100px 460px at 50% -12%, rgba(180, 83, 9, 0.13), transparent 62%),
+        linear-gradient(180deg, var(--crema) 0%, var(--crema-2) 100%);
+    }
+
+    .login {
+      width: 100%;
+      max-width: 400px;
+      background: #fff;
+      border: 1px solid var(--borde);
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: 0 30px 60px -34px rgba(35, 26, 18, 0.55);
+    }
+    .login__banda {
+      height: 10px;
+      background: linear-gradient(90deg, var(--ámbar-hover) 0%, var(--ámbar) 55%, var(--ámbar-claro) 100%);
+    }
+    .login__cuerpo { padding: 2.3rem 2.1rem 2rem; text-align: center; }
+    .login__logo { width: auto; height: 44px; margin: 0 auto 1rem; display: block; }
+    .login h1 {
+      font-family: var(--fuente-titulo);
+      font-size: 1.85rem;
+      line-height: 1.15;
+      color: var(--tinta);
+      margin-bottom: 0.45rem;
+      letter-spacing: -0.01em;
+    }
+    .login__bajada { color: var(--tinta-suave); font-size: 0.9rem; margin-bottom: 1.5rem; }
+    .login form { text-align: left; }
+    .login .campo { margin-bottom: 1rem; }
+    .login__nota {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      margin-top: 1.3rem;
+      font-size: 0.78rem;
+      color: var(--tinta-suave);
+      background: var(--crema);
+      border: 1px dashed var(--borde);
+      border-radius: 999px;
+      padding: 0.35rem 0.9rem;
+    }
+    .login__volver {
+      display: inline-block;
+      margin-top: 1.4rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--ámbar);
+      text-decoration: none;
+    }
+    .login__volver:hover { color: var(--ámbar-hover); text-decoration: underline; }
+    .login__pie {
+      border-top: 1px solid var(--borde);
+      background: var(--crema);
+      padding: 0.75rem 1rem;
+      font-size: 0.75rem;
+      color: var(--tinta-suave);
+      text-align: center;
+    }
+
+    /* ---------- Panel ---------- */
     .admin { min-height: 100vh; padding: 2.5rem 0 4rem; }
     .admin__top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem; }
     .admin__top h1 { font-size: 1.8rem; }
     .estado-bbdd { font-size: 0.85rem; padding: 0.4rem 0.9rem; border-radius: 999px; font-weight: 600; }
     .estado-bbdd--ok { background: #d1fae5; color: #065f46; }
     .estado-bbdd--demo { background: #fef3c7; color: #92400e; }
-
-    .login { max-width: 400px; margin: 4rem auto; background: #fff; padding: 2.2rem; border-radius: var(--radio); border: 1px solid var(--borde); box-shadow: var(--sombra-suave); text-align: center; }
-    .login h1 { font-size: 1.6rem; margin-bottom: 0.4rem; }
-    .login p { color: var(--tinta-suave); font-size: 0.9rem; margin-bottom: 1.4rem; }
 
     .admin__grid { display: grid; grid-template-columns: 360px 1fr; gap: 1.8rem; align-items: start; }
     @media (max-width: 900px) { .admin__grid { grid-template-columns: 1fr; } }
@@ -50,19 +117,30 @@
   </style>
 </head>
 <body>
-  <!-- ==================== LOGIN ==================== -->
-  <section class="login" id="vistaLogin">
-    <h1>🛡️ Área administrativa</h1>
-    <p>LibrosHernes — ingresá tu contraseña para gestionar el catálogo</p>
-    <form id="formLogin">
-      <label class="campo" style="text-align:left">
-        <span>Contraseña</span>
-        <input type="password" id="passwordLogin" required autofocus placeholder="••••••••" />
-      </label>
-      <div class="errores" id="errorLogin" hidden></div>
-      <button type="submit" class="btn btn--primario btn--bloque">Ingresar</button>
-    </form>
-    <p style="margin-top:1.2rem"><a href="index.html" style="font-size:0.85rem;color:var(--ámbar)">← Volver a la tienda</a></p>
+  <!-- ==================== ACCESO ==================== -->
+  <section class="acceso" id="vistaLogin">
+    <div class="login">
+      <div class="login__banda"></div>
+      <div class="login__cuerpo">
+        <img class="login__logo" src="/img/logo.svg" alt="" />
+        <h1>Administración</h1>
+        <p class="login__bajada">Ingresá tu contraseña para gestionar el catálogo de LibrosHernes.</p>
+
+        <form id="formLogin">
+          <label class="campo">
+            <span>Contraseña</span>
+            <input type="password" id="passwordLogin" required autofocus placeholder="••••••••" autocomplete="current-password" />
+          </label>
+          <div class="errores" id="errorLogin" hidden></div>
+          <button type="submit" class="btn btn--primario btn--bloque">Ingresar</button>
+        </form>
+
+        <span class="login__nota">🔒 Acceso restringido y monitoreado</span>
+        <br />
+        <a class="login__volver" href="/">← Volver a la tienda</a>
+      </div>
+      <div class="login__pie">LibrosHernes · Panel privado</div>
+    </div>
   </section>
 
   <!-- ==================== PANEL ==================== -->
@@ -72,7 +150,7 @@
         <h1>📚 Panel de libros</h1>
         <div style="display:flex; gap:0.7rem; align-items:center; flex-wrap:wrap">
           <span class="estado-bbdd" id="estadoBbdd">conectando...</span>
-          <a href="index.html" class="btn btn--sm" style="background:var(--crema-2);color:var(--tinta)">Ver tienda</a>
+          <a href="/" class="btn btn--sm" style="background:var(--crema-2);color:var(--tinta)">Ver tienda</a>
           <button class="btn btn--sm btn--peligro" id="btnSalir">Salir</button>
         </div>
       </div>
@@ -149,6 +227,6 @@
 
   <div class="toast" id="toast" hidden></div>
 
-  <script src="js/admin.js"></script>
+  <script src="__RUTA_ADMIN__.js"></script>
 </body>
 </html>
