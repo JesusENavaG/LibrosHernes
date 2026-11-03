@@ -415,7 +415,7 @@ app.get('/api/admin/libros', requiereAdmin, async (req, res) => {
 });
 
 app.post('/api/admin/libros', requiereAdmin, async (req, res) => {
-  const { titulo, autor, descripcion, precio, imagen_url, stock, activo } = req.body || {};
+  const { titulo, autor, descripcion, precio, imagen_url, stock, activo, categoria } = req.body || {};
   if (!titulo || !String(titulo).trim()) {
     return res.status(400).json({ error: 'El título es obligatorio' });
   }
@@ -427,6 +427,7 @@ app.post('/api/admin/libros', requiereAdmin, async (req, res) => {
     imagen_url: imagen_url || null,
     stock: Number(stock) || 0,
     activo: activo !== false,
+    categoria: categoria ? String(categoria).trim() : null,
   };
 
   if (!estaConectado()) {
@@ -444,7 +445,7 @@ app.post('/api/admin/libros', requiereAdmin, async (req, res) => {
 
 app.put('/api/admin/libros/:id', requiereAdmin, async (req, res) => {
   const { id } = req.params;
-  const { titulo, autor, descripcion, precio, imagen_url, stock, activo } = req.body || {};
+  const { titulo, autor, descripcion, precio, imagen_url, stock, activo, categoria } = req.body || {};
   if (!titulo || !String(titulo).trim()) {
     return res.status(400).json({ error: 'El título es obligatorio' });
   }
@@ -456,6 +457,7 @@ app.put('/api/admin/libros/:id', requiereAdmin, async (req, res) => {
     imagen_url: imagen_url || null,
     stock: Number(stock) || 0,
     activo: Boolean(activo),
+    categoria: categoria ? String(categoria).trim() : null,
   };
 
   if (!estaConectado()) {

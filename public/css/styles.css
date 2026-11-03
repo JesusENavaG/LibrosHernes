@@ -2,28 +2,42 @@
    LibrosHernes - Hoja de estilos principal
    ============================================================ */
 
-/* ---------- Variables (paleta según el logo: verde bosque + oro + pastel) ---------- */
+/* ---------- Variables (tema oscuro: fondo = negro cálido de las fotos) ---------- */
 :root {
+  color-scheme: dark;          /* inputs, selects y scrollbars en oscuro */
+
   --verde: #1a3b2c;            /* verde de la marca */
   --verde-medio: #2f6b4f;      /* verde medio (acentos) */
-  --crema: #e5ede2;            /* fondo pastel verdoso (suave, sin brillo) */
-  --crema-2: #d8e4d5;          /* verde pastel suave (hover, cajas) */
-  --blanco: #fcfcf8;           /* superficies cálidas (tarjetas, paneles, inputs) */
-  --tinta: #16352a;            /* texto principal y fondos oscuros */
-  --tinta-suave: #4e6156;      /* texto secundario */
-  --ámbar: #8b6010;            /* oro oscuro: textos, enlaces y botones */
-  --ámbar-claro: #c9971b;      /* oro: bordes y detalles */
-  --ámbar-hover: #74500c;      /* oro más oscuro (hover) */
+
+  --crema: #2c1d1e;            /* fondo principal (negro medido de las imágenes) */
+  --crema-2: #3d2a2d;          /* superficie alterna (hover, gradientes) */
+  --blanco: #362528;           /* superficies: tarjetas, paneles, inputs */
+
+  --tinta: #f4ebe8;            /* texto principal (claro sobre fondo oscuro) */
+  --tinta-fondo: #1e1214;      /* bandas oscuras: footer, toast, cabeceras */
+  --tinta-suave: #bfaea9;      /* texto secundario */
+
+  --ámbar: #e8bb63;            /* oro brillante: textos, enlaces y acentos */
+  --ámbar-claro: #f5d79a;      /* oro claro: bordes y detalles */
+  --ámbar-hover: #d9a94f;      /* oro en hover */
   --dorado: #f7dfa6;           /* oro claro sobre fondos oscuros */
+
   --whatsapp: #25d366;
   --whatsapp-oscuro: #128c7e;
   --rojo: #dc2626;
-  --borde: #cfdece;
-  --sombra: 0 10px 30px rgba(22, 53, 42, 0.10);
-  --sombra-suave: 0 4px 14px rgba(22, 53, 42, 0.07);
+  --rojo-claro: #f87171;       /* rojo legible sobre fondo oscuro */
+
+  --borde: #4b3538;
+  --sombra: 0 10px 30px rgba(0, 0, 0, 0.45);
+  --sombra-suave: 0 4px 14px rgba(0, 0, 0, 0.32);
   --radio: 14px;
   --fuente-titulo: "Playfair Display", Georgia, serif;
   --fuente-texto: "Inter", system-ui, -apple-system, sans-serif;
+
+  /* Hueco entre el logo y el menú = mismo margen que hay a la izquierda
+     (el .contenedor mide min(1180px, 92%) y está centrado).
+     Tope de 370px para que en pantallas muy anchas (>1920) no invada el menú. */
+  --gap-header: min(370px, calc((100vw - min(1180px, 92vw)) / 2));
 }
 
 /* ---------- Base ---------- */
@@ -86,15 +100,15 @@ h1, h2, h3 { font-family: var(--fuente-titulo); line-height: 1.15; }
 .btn:hover { transform: translateY(-2px); box-shadow: var(--sombra-suave); }
 .btn:active { transform: translateY(0); }
 
-.btn--primario { background: var(--ámbar); color: #fff; }
+.btn--primario { background: var(--ámbar); color: var(--crema); font-weight: 700; }
 .btn--primario:hover { background: var(--ámbar-hover); }
 
 .btn--whatsapp { background: var(--whatsapp); color: #fff; }
 .btn--whatsapp:hover { background: var(--whatsapp-oscuro); }
 
 /* Botón del Buhito Sabio (chat con IA) */
-.btn--buho { background: linear-gradient(160deg, var(--verde-medio), var(--verde)); color: #fff; }
-.btn--buho:hover { background: linear-gradient(160deg, var(--verde), #10281e); }
+.btn--buho { background: linear-gradient(160deg, #3d8b66, var(--verde-medio)); color: #fff; }
+.btn--buho:hover { background: linear-gradient(160deg, #47a377, #26604a); }
 
 .btn--sm { padding: 0.5rem 1rem; font-size: 0.85rem; }
 .btn--lg { padding: 0.9rem 1.8rem; font-size: 1rem; }
@@ -106,7 +120,7 @@ h1, h2, h3 { font-family: var(--fuente-titulo); line-height: 1.15; }
   position: sticky;
   top: 0;
   z-index: 50;
-  background: rgba(229, 237, 226, 0.92);
+  background: rgba(30, 18, 20, 0.92);
   backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--borde);
 }
@@ -114,14 +128,19 @@ h1, h2, h3 { font-family: var(--fuente-titulo); line-height: 1.15; }
 .header__contenido {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
   padding: 0.7rem 0;
 }
 
-.logo img { height: 66px; width: auto; border-radius: 8px; }
+/* El logo crece con la pantalla (más alargado) hasta acercarse al menú */
+.logo { flex: 0 0 auto; }
+.logo img {
+  display: block;
+  height: clamp(66px, 7.5vw, 104px);
+  width: auto;
+  border-radius: 8px;
+}
 
-.nav { display: flex; gap: 1.5rem; }
+.nav { display: flex; gap: 1.5rem; flex: 0 0 auto; margin-left: var(--gap-header); }
 .nav__enlace {
   font-weight: 600;
   font-size: 0.95rem;
@@ -130,7 +149,7 @@ h1, h2, h3 { font-family: var(--fuente-titulo); line-height: 1.15; }
 }
 .nav__enlace:hover { color: var(--ámbar); }
 
-.header__acciones { display: flex; align-items: center; gap: 0.7rem; }
+.header__acciones { display: flex; align-items: center; gap: 0.7rem; margin-left: auto; }
 
 .btn-carrito {
   position: relative;
@@ -156,7 +175,7 @@ h1, h2, h3 { font-family: var(--fuente-titulo); line-height: 1.15; }
   display: grid;
   place-items: center;
   background: var(--ámbar);
-  color: #fff;
+  color: var(--crema);
   font-size: 0.72rem;
   font-weight: 700;
   border-radius: 999px;
@@ -168,8 +187,8 @@ h1, h2, h3 { font-family: var(--fuente-titulo); line-height: 1.15; }
 /* ---------- Hero ---------- */
 .hero {
   background:
-    radial-gradient(1000px 400px at 85% -10%, rgba(47, 107, 79, 0.16), transparent 60%),
-    radial-gradient(700px 300px at 5% 110%, rgba(201, 151, 27, 0.12), transparent 65%),
+    radial-gradient(1000px 400px at 85% -10%, rgba(61, 139, 102, 0.30), transparent 60%),
+    radial-gradient(700px 300px at 5% 110%, rgba(232, 187, 99, 0.20), transparent 65%),
     linear-gradient(180deg, var(--crema) 0%, var(--crema-2) 100%);
   padding: clamp(3rem, 7vw, 5.5rem) 0;
   overflow: hidden;
@@ -205,7 +224,7 @@ h1, h2, h3 { font-family: var(--fuente-titulo); line-height: 1.15; }
   width: 210px;
   border-radius: 6px;
   box-shadow: var(--sombra);
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.10);
   transition: transform 0.3s ease;
 }
 .pila-libros__item--1 { top: 20px; left: 0; transform: rotate(-8deg); z-index: 3; }
@@ -268,9 +287,9 @@ h1, h2, h3 { font-family: var(--fuente-titulo); line-height: 1.15; }
 .catalogo__aviso {
   margin-top: 1.8rem;
   text-align: center;
-  background: #f7f1dc;
+  background: rgba(232, 187, 99, 0.14);
   border: 1px dashed var(--ámbar-claro);
-  color: #7c5a10;
+  color: var(--ámbar-claro);
   padding: 0.8rem;
   border-radius: var(--radio);
   font-size: 0.9rem;
@@ -301,7 +320,7 @@ h1, h2, h3 { font-family: var(--fuente-titulo); line-height: 1.15; }
   position: absolute;
   top: 10px;
   left: 10px;
-  background: rgba(22, 53, 42, 0.85);
+  background: rgba(30, 18, 20, 0.88);
   color: #fff;
   font-size: 0.72rem;
   font-weight: 600;
@@ -343,7 +362,7 @@ h1, h2, h3 { font-family: var(--fuente-titulo); line-height: 1.15; }
   border-radius: 50%;
   border: 3px solid var(--dorado);
   background: linear-gradient(160deg, var(--verde-medio), var(--verde));
-  box-shadow: 0 10px 26px rgba(22, 53, 42, 0.45);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.55);
   display: grid;
   place-items: center;
   cursor: pointer;
@@ -358,7 +377,7 @@ h1, h2, h3 { font-family: var(--fuente-titulo); line-height: 1.15; }
   content: "Consultame";
   position: absolute;
   right: 74px;
-  background: var(--tinta);
+  background: var(--tinta-fondo);
   color: #fff;
   font-size: 0.78rem;
   font-weight: 600;
@@ -373,7 +392,7 @@ h1, h2, h3 { font-family: var(--fuente-titulo); line-height: 1.15; }
 .btn-buho-fab:hover::after { opacity: 1; transform: translateX(0); }
 
 @keyframes fab-brillo {
-  0%, 100% { box-shadow: 0 10px 26px rgba(22, 53, 42, 0.45); }
+  0%, 100% { box-shadow: 0 10px 26px rgba(0, 0, 0, 0.55); }
   50% { box-shadow: 0 10px 32px rgba(201, 151, 27, 0.55); }
 }
 
@@ -399,7 +418,7 @@ h1, h2, h3 { font-family: var(--fuente-titulo); line-height: 1.15; }
   height: 52px;
   margin: 0 auto 1rem;
   background: var(--ámbar);
-  color: #fff;
+  color: var(--crema);
   font-family: var(--fuente-titulo);
   font-size: 1.4rem;
   font-weight: 700;
@@ -412,7 +431,7 @@ h1, h2, h3 { font-family: var(--fuente-titulo); line-height: 1.15; }
 .cta { padding: clamp(3rem, 7vw, 5rem) 0; }
 .cta__contenido {
   background: linear-gradient(120deg, var(--ámbar-hover), var(--ámbar));
-  color: #fff;
+  color: var(--crema);
   border-radius: 22px;
   padding: clamp(2rem, 5vw, 3.2rem);
   display: flex;
@@ -426,7 +445,7 @@ h1, h2, h3 { font-family: var(--fuente-titulo); line-height: 1.15; }
 .cta p { opacity: 0.92; }
 
 /* ---------- Footer ---------- */
-.footer { background: var(--tinta); color: #e7efe8; margin-top: 2rem; }
+.footer { background: var(--tinta-fondo); color: #e7efe8; margin-top: 2rem; }
 .footer__contenido {
   display: grid;
   grid-template-columns: 1.4fr 1fr 1fr;
@@ -445,7 +464,7 @@ h1, h2, h3 { font-family: var(--fuente-titulo); line-height: 1.15; }
 .overlay {
   position: fixed;
   inset: 0;
-  background: rgba(14, 34, 26, 0.55);
+  background: rgba(8, 4, 5, 0.72);
   z-index: 90;
   animation: fade 0.2s ease;
 }
@@ -456,7 +475,7 @@ h1, h2, h3 { font-family: var(--fuente-titulo); line-height: 1.15; }
   right: 0;
   width: min(420px, 100%);
   height: 100%;
-  background: var(--crema);
+  background: var(--blanco);
   z-index: 100;
   display: flex;
   flex-direction: column;
@@ -537,7 +556,7 @@ h1, h2, h3 { font-family: var(--fuente-titulo); line-height: 1.15; }
   position: fixed;
   inset: 0;
   z-index: 120;
-  background: rgba(14, 34, 26, 0.6);
+  background: rgba(8, 4, 5, 0.78);
   display: grid;
   place-items: center;
   padding: 1rem;
@@ -547,7 +566,7 @@ h1, h2, h3 { font-family: var(--fuente-titulo); line-height: 1.15; }
 
 .modal__caja {
   position: relative;
-  background: var(--crema);
+  background: var(--blanco);
   border-radius: 18px;
   width: min(920px, 100%);
   max-height: 92vh;
@@ -574,7 +593,7 @@ h1, h2, h3 { font-family: var(--fuente-titulo); line-height: 1.15; }
 .detalle__autor { color: var(--ámbar); font-weight: 600; margin-bottom: 0.9rem; }
 .detalle__precio { font-family: var(--fuente-titulo); font-size: 2rem; font-weight: 700; margin-bottom: 1rem; }
 .detalle__descripcion { color: var(--tinta-suave); margin-bottom: 1rem; }
-.detalle__stock { font-size: 0.87rem; font-weight: 600; color: var(--whatsapp-oscuro); margin-bottom: 1.2rem; }
+.detalle__stock { font-size: 0.87rem; font-weight: 600; color: var(--whatsapp); margin-bottom: 1.2rem; }
 .detalle__acciones { display: flex; gap: 0.8rem; flex-wrap: wrap; }
 
 /* ---------- Formulario de pedido ---------- */
@@ -614,9 +633,9 @@ h1, h2, h3 { font-family: var(--fuente-titulo); line-height: 1.15; }
 .campo input.invalido, .campo textarea.invalido { border-color: var(--rojo); }
 
 .errores {
-  background: #fee2e2;
+  background: rgba(220, 38, 38, 0.16);
   border: 1px solid var(--rojo);
-  color: #991b1b;
+  color: #fecaca;
   padding: 0.7rem 0.9rem;
   border-radius: 10px;
   font-size: 0.88rem;
@@ -637,7 +656,7 @@ h1, h2, h3 { font-family: var(--fuente-titulo); line-height: 1.15; }
   bottom: 24px;
   left: 50%;
   transform: translateX(-50%);
-  background: var(--tinta);
+  background: var(--tinta-fondo);
   color: #fff;
   padding: 0.8rem 1.4rem;
   border-radius: 999px;
@@ -666,6 +685,7 @@ h1, h2, h3 { font-family: var(--fuente-titulo); line-height: 1.15; }
     top: 100%;
     left: 0;
     right: 0;
+    margin-left: 0;            /* el menú desplegable va de borde a borde */
     background: var(--crema);
     border-bottom: 1px solid var(--borde);
     flex-direction: column;

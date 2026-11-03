@@ -34,7 +34,7 @@
   align-items: center;
   gap: 0.6rem;
   padding: 0.7rem 0.85rem;
-  background: var(--tinta);
+  background: var(--tinta-fondo);
   color: var(--crema-2);
   flex-shrink: 0;
   border-radius: 17px 17px 0 0;
@@ -214,7 +214,7 @@
 }
 .buhito .mensaje--cliente .mensaje__burbuja {
   background: linear-gradient(180deg, var(--ámbar), var(--ámbar-hover));
-  color: #fff;
+  color: #2a1b10;
   border-bottom-right-radius: 4px;
 }
 
@@ -268,7 +268,7 @@
 .buhito .chip:hover {
   border-color: var(--ámbar-claro);
   color: var(--ámbar);
-  background: #fff8ec;
+  background: rgba(232, 187, 99, 0.14);
   transform: translateY(-1px);
 }
 
@@ -306,7 +306,7 @@
   border: none;
   border-radius: 50%;
   background: linear-gradient(160deg, var(--ámbar), var(--ámbar-hover));
-  color: #fff;
+  color: #2a1b10;
   cursor: pointer;
   display: grid;
   place-items: center;

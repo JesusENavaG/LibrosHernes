@@ -11,9 +11,26 @@ const estado = {
   libroAbierto: null,
   busqueda: '',
   orden: 'destacados',
+  categoria: '',
 };
 
 const CLAVE_CARRITO = 'carritoLibrosHernes';
+
+// ---------------- Categorías del catálogo ----------------
+// Lista fija: el desplegable siempre las muestra (aunque hoy no haya libros
+// de alguna), y luego se agregan las que aparezcan en la base pero falten acá.
+const CATEGORIAS = [
+  'Novela',
+  'Cuentos y relatos',
+  'Clásicos',
+  'Teatro y poesía',
+  'Infantil y juvenil',
+  'Ensayo y sociedad',
+  'Derecho y educación',
+  'Salud y bienestar',
+  'Cómic y novela gráfica',
+  'En inglés',
+];
 
 // ---------------- Utilidades ----------------
 const $ = (sel) => document.querySelector(sel);
@@ -163,11 +180,13 @@ async function cargarLibros() {
     estado.libros = data.libros || [];
     aviso.textContent = AVISO_DEMO;
     aviso.hidden = data.fuente !== 'demo';
+    actualizarSelectCategorias();
     renderizarLibros();
     actualizarStatLibros();
   } catch (e) {
     // Sin servidor: catálogo de respaldo para que la página nunca quede vacía
     estado.libros = LIBROS_RESPALDO.map((l) => ({ ...l }));
+    actualizarSelectCategorias();
     renderizarLibros();
     actualizarStatLibros();
     aviso.textContent =
@@ -185,6 +204,27 @@ function actualizarStatLibros() {
   if (el && estado.libros.length) el.textContent = estado.libros.length + '+';
 }
 
+// Desplegable de categorías: las fijas + las que existan en la base
+function actualizarSelectCategorias() {
+  const sel = $('#categoria');
+  if (!sel) return;
+
+  const enUso = [...new Set(estado.libros.map((l) => l.categoria).filter(Boolean))];
+  const todas = [...CATEGORIAS];
+  enUso.forEach((c) => { if (!todas.includes(c)) todas.push(c); });
+
+  const actual = estado.categoria;
+  sel.innerHTML =
+    '<option value="">Todas las categorías</option>' +
+    todas.map((c) => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+
+  // Si el filtro activo ya no existe, volvemos a "todas"
+  if (actual && !todas.includes(actual)) {
+    estado.categoria = '';
+  }
+  sel.value = estado.categoria;
+}
+
 // ---------------- Render del catálogo ----------------
 function librosFiltrados() {
   let lista = [...estado.libros];
@@ -195,6 +235,9 @@ function librosFiltrados() {
         (l.titulo || '').toLowerCase().includes(q) ||
         (l.autor || '').toLowerCase().includes(q)
     );
+  }
+  if (estado.categoria) {
+    lista = lista.filter((l) => (l.categoria || '') === estado.categoria);
   }
   switch (estado.orden) {
     case 'precio-asc': lista.sort((a, b) => a.precio - b.precio); break;
@@ -393,7 +436,7 @@ function abrirModal(id) {
 }
 function cerrarModal(id) {
   $('#' + id).hidden = true;
-  if (!$$('.modal').some((m) => !m.hidden)) document.body.style.overflow = '';
+  if (![...$$('.modal')].some((m) => !m.hidden)) document.body.style.overflow = '';
 }
 
 function abrirDetalle(libro) {
@@ -564,6 +607,10 @@ function init() {
   });
   $('#orden').addEventListener('change', (e) => {
     estado.orden = e.target.value;
+    renderizarLibros();
+  });
+  $('#categoria').addEventListener('change', (e) => {
+    estado.categoria = e.target.value;
     renderizarLibros();
   });
 

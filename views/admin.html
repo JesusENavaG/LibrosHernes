@@ -84,8 +84,8 @@
     .admin__top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem; }
     .admin__top h1 { font-size: 1.8rem; }
     .estado-bbdd { font-size: 0.85rem; padding: 0.4rem 0.9rem; border-radius: 999px; font-weight: 600; }
-    .estado-bbdd--ok { background: #d1fae5; color: #065f46; }
-    .estado-bbdd--demo { background: #fef3c7; color: #92400e; }
+    .estado-bbdd--ok { background: rgba(34, 197, 94, 0.18); color: #6ee7b7; }
+    .estado-bbdd--demo { background: rgba(245, 158, 11, 0.18); color: #fcd34d; }
 
     .admin__grid { display: grid; grid-template-columns: 360px 1fr; gap: 1.8rem; align-items: start; }
     @media (max-width: 900px) { .admin__grid { grid-template-columns: 1fr; } }
@@ -95,8 +95,8 @@
     .panel .campo { margin-bottom: 0.8rem; }
     .acciones-form { display: flex; gap: 0.6rem; margin-top: 1rem; }
     .acciones-form .btn { flex: 1; }
-    .btn--peligro { background: #fee2e2; color: var(--rojo); }
-    .btn--peligro:hover { background: #fecaca; }
+    .btn--peligro { background: rgba(220, 38, 38, 0.18); color: #fca5a5; }
+    .btn--peligro:hover { background: rgba(220, 38, 38, 0.30); }
 
     .lista-libros { display: flex; flex-direction: column; gap: 0.9rem; }
     .fila-libro { display: grid; grid-template-columns: 56px 1fr auto; gap: 1rem; align-items: center; background: var(--crema); border: 1px solid var(--borde); border-radius: 12px; padding: 0.75rem; }
@@ -107,7 +107,7 @@
     .fila-libro__btns { display: flex; gap: 0.4rem; flex-direction: column; }
     .fila-libro__btns button { border: 1px solid var(--borde); background: var(--blanco); border-radius: 8px; padding: 0.35rem 0.8rem; font-size: 0.8rem; font-weight: 600; }
     .fila-libro__btns button:hover { background: var(--crema-2); }
-    .etiqueta-inactiva { background: #fee2e2; color: #991b1b; font-size: 0.7rem; padding: 0.1rem 0.5rem; border-radius: 999px; font-weight: 700; }
+    .etiqueta-inactiva { background: rgba(220, 38, 38, 0.18); color: #fca5a5; font-size: 0.7rem; padding: 0.1rem 0.5rem; border-radius: 999px; font-weight: 700; }
 
     .subida-imagen { border: 2px dashed var(--borde); border-radius: 10px; padding: 1rem; text-align: center; background: var(--crema); }
     .subida-imagen input { margin-top: 0.5rem; font-size: 0.85rem; }
@@ -170,6 +170,13 @@
             <label class="campo">
               <span>Autor</span>
               <input type="text" name="autor" placeholder="Ej: Jorge Luis Borges" />
+            </label>
+
+            <label class="campo">
+              <span>Categoría</span>
+              <select name="categoria" id="categoriaLibro">
+                <option value="">Sin categoría</option>
+              </select>
             </label>
 
             <label class="campo">

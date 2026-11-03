@@ -4,6 +4,20 @@
 
 const CLAVE_TOKEN = 'tokenAdminLibrosHernes';
 
+// Mismas categorías que usa la tienda (public/js/app.js)
+const CATEGORIAS = [
+  'Novela',
+  'Cuentos y relatos',
+  'Clásicos',
+  'Teatro y poesía',
+  'Infantil y juvenil',
+  'Ensayo y sociedad',
+  'Derecho y educación',
+  'Salud y bienestar',
+  'Cómic y novela gráfica',
+  'En inglés',
+];
+
 const $ = (sel) => document.querySelector(sel);
 const $$ = (sel) => document.querySelectorAll(sel);
 
@@ -82,6 +96,7 @@ async function cargarLibros() {
     const data = await api('/api/admin/libros');
     libros = data.libros || [];
     renderizarLista();
+    cargarCategorias();
 
     const estado = $('#estadoBbdd');
     if (data.fuente === 'supabase') {
@@ -113,7 +128,7 @@ function renderizarLista() {
              onerror="this.src='/img/covers/sin-imagen.svg'" />
         <div>
           <h3>${escapeHtml(l.titulo)} ${l.activo ? '' : '<span class="etiqueta-inactiva">OCULTO</span>'}</h3>
-          <small>${escapeHtml(l.autor || 'Sin autor')} · Stock: ${l.stock}</small>
+          <small>${escapeHtml(l.autor || 'Sin autor')} · Stock: ${l.stock}${l.categoria ? ' · ' + escapeHtml(l.categoria) : ''}</small>
           <span class="fila-libro__precio">${formatearPrecio(l.precio)}</span>
         </div>
         <div class="fila-libro__btns">
@@ -138,6 +153,7 @@ function libroEnFormulario() {
     stock: parseInt(form.stock.value, 10) || 0,
     imagen_url: form.imagen_url.value.trim(),
     activo: form.activo.checked,
+    categoria: form.categoria.value,
   };
 }
 
@@ -153,6 +169,7 @@ function editarLibro(id) {
   form.stock.value = libro.stock;
   form.imagen_url.value = libro.imagen_url || '';
   form.activo.checked = libro.activo;
+  form.categoria.value = libro.categoria || '';
 
   $('#tituloForm').textContent = 'Editar libro';
   $('#btnGuardar').textContent = 'Guardar cambios';
@@ -165,6 +182,7 @@ function cancelarEdicion() {
   form.reset();
   form.id.value = '';
   form.activo.checked = true;
+  form.categoria.value = '';
   $('#tituloForm').textContent = 'Agregar libro';
   $('#btnGuardar').textContent = 'Guardar libro';
   $('#btnCancelar').hidden = true;
@@ -274,6 +292,20 @@ function previsualizarImagen() {
 }
 
 // ---------------- Init ----------------
+function cargarCategorias() {
+  const sel = $('#categoriaLibro');
+  if (!sel) return;
+  const enUso = [...new Set(libros.map((l) => l.categoria).filter(Boolean))];
+  const todas = [...CATEGORIAS];
+  enUso.forEach((c) => { if (!todas.includes(c)) todas.push(c); });
+
+  const actual = sel.value;
+  sel.innerHTML =
+    '<option value="">Sin categoría</option>' +
+    todas.map((c) => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+  sel.value = todas.includes(actual) ? actual : '';
+}
+
 function iniciarPanel() {
   cargarLibros();
 }

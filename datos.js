@@ -47,6 +47,7 @@ const normalizarLibro = (l) => ({
   imagen_url: l.imagen_url || '',
   stock: Number(l.stock) || 0,
   activo: l.activo !== false,
+  categoria: l.categoria || '',
 });
 
 // ------------------------------------------------------------
@@ -90,10 +91,10 @@ async function crearLibro(libro) {
     return normalizarLibro(data);
   }
   const { rows } = await pool.query(
-    `insert into ${TABLA_LIBROS} (titulo, autor, descripcion, precio, imagen_url, stock, activo)
-     values ($1, $2, $3, $4, $5, $6, $7) returning *`,
+    `insert into ${TABLA_LIBROS} (titulo, autor, descripcion, precio, imagen_url, stock, activo, categoria)
+     values ($1, $2, $3, $4, $5, $6, $7, $8) returning *`,
     [libro.titulo, libro.autor, libro.descripcion, libro.precio,
-     libro.imagen_url, libro.stock, libro.activo]
+     libro.imagen_url, libro.stock, libro.activo, libro.categoria]
   );
   return normalizarLibro(rows[0]);
 }
@@ -108,10 +109,10 @@ async function editarLibro(id, libro) {
   const { rows } = await pool.query(
     `update ${TABLA_LIBROS}
         set titulo = $1, autor = $2, descripcion = $3, precio = $4,
-            imagen_url = $5, stock = $6, activo = $7, updated_at = now()
-      where id = $8 returning *`,
+            imagen_url = $5, stock = $6, activo = $7, categoria = $8, updated_at = now()
+      where id = $9 returning *`,
     [libro.titulo, libro.autor, libro.descripcion, libro.precio,
-     libro.imagen_url, libro.stock, libro.activo, id]
+     libro.imagen_url, libro.stock, libro.activo, libro.categoria, id]
   );
   return rows[0] ? normalizarLibro(rows[0]) : null;
 }
