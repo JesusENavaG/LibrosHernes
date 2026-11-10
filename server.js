@@ -192,7 +192,14 @@ app.get('/api/config', (req, res) => {
 });
 
 app.get('/api/health', async (req, res) => {
-  res.json({ ok: true, supabase: estaConectado() ? datos.fuente() : 'demo' });
+  const cuerpo = {
+    ok: true,
+    supabase: estaConectado() ? datos.fuente() : 'demo',
+  };
+  // Si la base falló, lo decimos acá para poder diagnosticar de un vistazo
+  const err = datos.errorActual && datos.errorActual();
+  if (err) cuerpo.aviso = err;
+  res.json(cuerpo);
 });
 
 // Listar libros (catálogo público: solo activos y con stock)
@@ -201,6 +208,7 @@ app.get('/api/libros', async (req, res) => {
     return res.json({
       fuente: 'demo',
       libros: librosDemo.filter((l) => l.activo && l.stock > 0),
+      aviso: 'El servidor no tiene base de datos configurada (faltan SUPABASE_URL y DATABASE_URL).',
     });
   }
   try {
@@ -208,7 +216,18 @@ app.get('/api/libros', async (req, res) => {
     res.json({ fuente: datos.fuente(), libros });
   } catch (e) {
     console.error('Error leyendo libros:', e.message);
-    res.json({ fuente: 'demo', libros: librosDemo.filter((l) => l.activo), aviso: e.message });
+    // Traducimos los errores de red a algo que un cliente pueda entender
+    // (el detalle técnico queda igual en /api/health y en la consola)
+    const detalle = /ENOTFOUND|ECONNREFUSED|ETIMEDOUT|fetch failed|timeout|terminated/i.test(
+      e.message || ''
+    )
+      ? 'no hay conexión con la base de datos'
+      : e.message;
+    res.json({
+      fuente: 'demo',
+      libros: librosDemo.filter((l) => l.activo),
+      aviso: `No pudimos leer el catálogo real: ${detalle}. Se muestran datos de ejemplo.`,
+    });
   }
 });
 

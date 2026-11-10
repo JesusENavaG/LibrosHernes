@@ -175,15 +175,30 @@ async function cargarConfig() {
 
 async function cargarLibros() {
   const aviso = $('#avisoDemo');
+  // Si la consulta se demora (servidor dormido o base caída), lo avisamos en
+  // vez de dejar el "Cargando libros..." eterno sin explicación.
+  const avisoCarga = setTimeout(() => {
+    const cargando = $('#gridLibros .catalogo__cargando');
+    if (cargando) {
+      cargando.textContent =
+        '⏳ Seguimos conectando con el catálogo… puede tardar unos segundos si el servidor se estaba despertando.';
+    }
+  }, 2500);
   try {
     const data = await api('/api/libros');
+    clearTimeout(avisoCarga);
     estado.libros = data.libros || [];
-    aviso.textContent = AVISO_DEMO;
-    aviso.hidden = data.fuente !== 'demo';
+    // Si el servidor cayó en datos de ejemplo, contamos por qué (no dejamos
+    // el aviso genérico sin explicar el motivo)
+    const enDemo = data.fuente === 'demo';
+    aviso.textContent =
+      enDemo && data.aviso ? `⚠️ ${data.aviso}` : AVISO_DEMO;
+    aviso.hidden = !enDemo;
     actualizarSelectCategorias();
     renderizarLibros();
     actualizarStatLibros();
   } catch (e) {
+    clearTimeout(avisoCarga);
     // Sin servidor: catálogo de respaldo para que la página nunca quede vacía
     estado.libros = LIBROS_RESPALDO.map((l) => ({ ...l }));
     actualizarSelectCategorias();

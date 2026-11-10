@@ -21,6 +21,12 @@ const supabase =
   SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY
     ? createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
         auth: { persistSession: false, autoRefreshToken: false },
+        // Sin esto, si el proyecto no responde (borrado/pausado) el cliente
+        // reintenta 3 veces con esperas de 1s + 2s + 4s = 7 segundos antes de
+        // rendirse, y el catálogo queda en "Cargando libros..." todo ese rato.
+        // Acá no reintentamos: con `conRespaldoPg` el plan B (PostgreSQL) ya
+        // está listo, y si falla todo, el aviso del catálogo lo explica.
+        db: { retry: false, timeout: 5000 },
       })
     : null;
 
@@ -30,12 +36,57 @@ const pool = process.env.DATABASE_URL
       connectionString: process.env.DATABASE_URL,
       ssl: { rejectUnauthorized: false },
       max: 5,
+      // Sin esto, si el host no responde la consulta se cuelga indefinidamente
+      // y el catálogo queda en "Cargando libros..." para siempre.
+      connectionTimeoutMillis: 5000,
+      query_timeout: 15000,
     })
   : null;
 
-// Qué motor se está usando (para mostrarlo en /api/health)
-const fuente = () => (supabase ? 'supabase' : pool ? 'postgres' : 'demo');
+// Qué motor se está usando (para mostrarlo en /api/health).
+// `motorEnUso` guarda el último motor que respondió bien: así, si Supabase se
+// cae y la lectura se resuelve con PostgreSQL, se informa "postgres" y no
+// "supabase" (que estaría configurado pero no respondiendo).
+let motorEnUso = null;
+const fuente = () => motorEnUso || (supabase ? 'supabase' : pool ? 'postgres' : 'demo');
 const hayConexion = () => Boolean(supabase || pool);
+
+// Último error de lectura de la base. Se muestra en /api/health y en el aviso
+// del catálogo, para que un problema con la base nunca pase inadvertido
+// (antes el sitio seguía mostrando el catálogo de ejemplo sin explicar por qué).
+let ultimoError = null;
+const errorActual = () => ultimoError;
+
+// Lee con Supabase y, si el proyecto no responde (borrado, pausado, sin red),
+// reintenta con PostgreSQL (DATABASE_URL) antes de rendirse. Solo se usa en
+// LECTURAS: reintentar una escritura podría duplicar filas.
+async function conRespaldoPg(opSupabase, opPg) {
+  if (supabase) {
+    try {
+      const r = await opSupabase();
+      motorEnUso = 'supabase';
+      ultimoError = null;
+      return r;
+    } catch (e) {
+      ultimoError = (e && e.message) || String(e);
+      console.error('⚠️  Supabase no respondió: ' + ultimoError);
+      if (!pool) throw e;
+      console.error('→ Reintentando la lectura con PostgreSQL (DATABASE_URL)…');
+    }
+  } else if (!pool) {
+    ultimoError = 'No hay base de datos configurada (faltan SUPABASE_URL y DATABASE_URL)';
+    throw new Error(ultimoError);
+  }
+  try {
+    const r = await opPg();
+    motorEnUso = 'postgres';
+    ultimoError = null;
+    return r;
+  } catch (e) {
+    ultimoError = (e && e.message) || String(e);
+    throw e;
+  }
+}
 
 // Normaliza una fila de la tabla 'libros'
 const normalizarLibro = (l) => ({
@@ -54,33 +105,42 @@ const normalizarLibro = (l) => ({
 //  LIBROS
 // ------------------------------------------------------------
 async function listarLibros({ soloActivos = false, soloConStock = false } = {}) {
-  if (supabase) {
-    let q = supabase.from(TABLA_LIBROS).select('*');
-    if (soloActivos) q = q.eq('activo', true);
-    if (soloConStock) q = q.gt('stock', 0);
-    const { data, error } = await q.order('created_at', { ascending: false });
-    if (error) throw error;
-    return (data || []).map(normalizarLibro);
-  }
   const condiciones = [];
   if (soloActivos) condiciones.push('activo = true');
   if (soloConStock) condiciones.push('stock > 0');
   const where = condiciones.length ? `where ${condiciones.join(' and ')}` : '';
-  const { rows } = await pool.query(
-    `select * from ${TABLA_LIBROS} ${where} order by created_at desc`
+
+  return conRespaldoPg(
+    async () => {
+      let q = supabase.from(TABLA_LIBROS).select('*');
+      if (soloActivos) q = q.eq('activo', true);
+      if (soloConStock) q = q.gt('stock', 0);
+      const { data, error } = await q.order('created_at', { ascending: false });
+      if (error) throw error;
+      return (data || []).map(normalizarLibro);
+    },
+    async () => {
+      const { rows } = await pool.query(
+        `select * from ${TABLA_LIBROS} ${where} order by created_at desc`
+      );
+      return rows.map(normalizarLibro);
+    }
   );
-  return rows.map(normalizarLibro);
 }
 
 async function obtenerLibro(id) {
-  if (supabase) {
-    const { data, error } = await supabase
-      .from(TABLA_LIBROS).select('*').eq('id', id).maybeSingle();
-    if (error) throw error;
-    return data ? normalizarLibro(data) : null;
-  }
-  const { rows } = await pool.query(`select * from ${TABLA_LIBROS} where id = $1`, [id]);
-  return rows[0] ? normalizarLibro(rows[0]) : null;
+  return conRespaldoPg(
+    async () => {
+      const { data, error } = await supabase
+        .from(TABLA_LIBROS).select('*').eq('id', id).maybeSingle();
+      if (error) throw error;
+      return data ? normalizarLibro(data) : null;
+    },
+    async () => {
+      const { rows } = await pool.query(`select * from ${TABLA_LIBROS} where id = $1`, [id]);
+      return rows[0] ? normalizarLibro(rows[0]) : null;
+    }
+  );
 }
 
 async function crearLibro(libro) {
@@ -247,6 +307,7 @@ module.exports = {
   pool,
   fuente,
   hayConexion,
+  errorActual,
   normalizarLibro,
   listarLibros,
   obtenerLibro,
